@@ -12,7 +12,7 @@ import MagneticButton from "../ui/MagneticButton";
 
 export default function Hero() {
   return (
-    <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-bg-subtle">
+    <section id="about" className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-bg-subtle">
       
       {/* Mesh Gradient Background from globals.css */}
       <div className="absolute inset-0 bg-mesh-fog z-0 pointer-events-none"></div>
@@ -91,7 +91,7 @@ export default function Hero() {
               {/* ━━━ MAGNETIC BUTTON APPLIED HERE ━━━ */}
               <MagneticButton>
                 <Button asChild size="lg" className="w-full sm:w-auto h-14 px-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] transition-all">
-                  <Link href="https://nexia-core.vercel.app/register">
+                  <Link href="https://app.nexiacore.shop/register">
                     Get Started Free <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>

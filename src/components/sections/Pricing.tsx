@@ -68,7 +68,7 @@ export default function Pricing() {
                     ? "bg-blue-600 text-white shadow-md hover:bg-blue-700 hover:shadow-lg" 
                     : "bg-slate-100 text-slate-900 hover:bg-slate-200"
                 }`}
-              >
+              target="_blank">
                 {plan.buttonText}
               </Link>
               {plan.popular && (

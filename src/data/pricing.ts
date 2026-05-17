@@ -14,7 +14,7 @@ export const PLANS = [
       { text: "Full Analytics Dashboard", included: false },
     ],
     buttonText: "Get Started Free",
-    link: "https://nexia-core.vercel.app/register",
+    link: "https://app.nexiacore.shop/register",
     popular: false
   },
   {
@@ -33,7 +33,7 @@ export const PLANS = [
       { text: "Multi-branch ready", included: true },
     ],
     buttonText: "Start 14-Day Free Trial",
-    link: "https://nexia-core.vercel.app/register",
+    link: "https://app.nexiacore.shop/register",
     popular: true
   },
   {

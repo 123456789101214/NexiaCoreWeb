@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 
 export default function CTASection() {
   return (
-    <section className="relative py-24 md:py-32 overflow-hidden bg-blue-600">
+    <section id="contact" className="relative py-24 md:py-32 overflow-hidden bg-blue-600">
       {/* Premium Mesh Gradient Overlay */}
       <div className="absolute inset-0 opacity-40 mix-blend-overlay pointer-events-none" style={{ backgroundImage: 'radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.4) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(0, 255, 255, 0.4) 0px, transparent 50%)' }}></div>
       
@@ -30,7 +30,7 @@ export default function CTASection() {
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <Link 
-            href="https://nexia-core.vercel.app/register"
+            href="https://app.nexiacore.shop/register"
             className="w-full sm:w-auto px-8 py-4 bg-white text-blue-600 rounded-full font-black text-base shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] hover:scale-105 transition-transform flex items-center justify-center gap-2"
           >
             Start Free Trial <ArrowRight size={18} />
