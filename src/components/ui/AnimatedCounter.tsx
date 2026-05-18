@@ -1,48 +1,62 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
-import { useInView } from "framer-motion";
+import { useEffect, useRef } from "react";
+import { useInView, useMotionValue, useSpring } from "framer-motion";
 
 interface AnimatedCounterProps {
-  end: number;
+  value: number;
   suffix?: string;
-  duration?: number;
+  prefix?: string;
+  decimals?: number;
 }
 
-export default function AnimatedCounter({ end, suffix = "", duration = 2000 }: AnimatedCounterProps) {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
+export default function AnimatedCounter({ 
+  value, 
+  suffix = "", 
+  prefix = "", 
+  decimals = 0 
+}: AnimatedCounterProps) {
+  
+  const ref = useRef<HTMLSpanElement>(null);
+  
+  // 1. Trigger animation ONLY when the component comes into the viewport
+  // once: true (එක්පාරක් විතරක් දුවන්න), amount: 0.5 (භාගයක්වත් පේන්න ඕනේ පටන් ගන්න)
+  const isInView = useInView(ref, { once: true, amount: 0.5 });
+  
+  // 2. Start from 0
+  const motionValue = useMotionValue(0);
+  
+  // 3. Apply Apple-like Spring Physics for the count up
+  const springValue = useSpring(motionValue, {
+    damping: 50,    // Resistance (higher = less bounce)
+    stiffness: 100, // Speed of the spring
+    restDelta: 0.5  // Stop calculating when it's very close to the target
+  });
 
   useEffect(() => {
-    if (!isInView) return;
-    
-    let startTime: number;
-    let animationFrame: number;
+    if (isInView) {
+      motionValue.set(value);
+    }
+  }, [isInView, value, motionValue]);
 
-    const updateCount = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = timestamp - startTime;
-      const percentage = Math.min(progress / duration, 1);
-      
-      // Easing function for smooth slowdown
-      const easeOutQuart = 1 - Math.pow(1 - percentage, 4);
-      setCount(Math.floor(end * easeOutQuart));
-
-      if (progress < duration) {
-        animationFrame = requestAnimationFrame(updateCount);
-      } else {
-        setCount(end);
+  useEffect(() => {
+    // 4. Update the DOM directly for 60fps performance (bypassing React state)
+    springValue.on("change", (latest) => {
+      if (ref.current) {
+        // Automatically add commas for thousands (e.g., 50000 -> 50,000)
+        ref.current.textContent = Intl.NumberFormat("en-US", {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        }).format(latest);
       }
-    };
-
-    animationFrame = requestAnimationFrame(updateCount);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [end, duration, isInView]);
+    });
+  }, [springValue, decimals]);
 
   return (
-    <span ref={ref}>
-      {count.toLocaleString()}{suffix}
-    </span>
+    <div className="inline-flex items-center">
+      {prefix && <span>{prefix}</span>}
+      <span ref={ref}>0</span>
+      {suffix && <span>{suffix}</span>}
+    </div>
   );
 }

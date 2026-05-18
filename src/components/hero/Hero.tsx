@@ -1,5 +1,5 @@
 "use client";
-
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, PlayCircle, CheckCircle2 } from "lucide-react";
@@ -8,9 +8,11 @@ import SriLankaMap from "./SriLankaMap";
 import HeroDashboard from "./HeroDashboard";
 import { Badge } from "../ui/badge"; // Shadcn Badge
 import { Button } from "../ui/button"; // Shadcn Button
+import VideoModal from "../ui/VideoModal";
 import MagneticButton from "../ui/MagneticButton";
 
 export default function Hero() {
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
   return (
     <section id="about" className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-bg-subtle">
       
@@ -98,10 +100,13 @@ export default function Hero() {
               </MagneticButton>
               
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
-                <Button asChild variant="ghost" size="lg" className="w-full sm:w-auto h-14 px-8 rounded-full font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100">
-                  <Link href="#demo">
-                    <PlayCircle className="mr-2 h-5 w-5" /> Watch Demo
-                  </Link>
+                <Button 
+                  onClick={() => setIsVideoOpen(true)} // <-- ලින්ක් එක වෙනුවට මේක දාන්න
+                  variant="ghost" 
+                  size="lg" 
+                  className="w-full sm:w-auto h-14 px-8 rounded-full font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
+                >
+                  <PlayCircle className="mr-2 h-5 w-5" /> Watch Demo
                 </Button>
               </motion.div>
             </motion.div>
@@ -135,6 +140,13 @@ export default function Hero() {
 
         </div>
       </div>
+      {/* ━━━ CINEMATIC VIDEO MODAL ━━━ */}
+      <VideoModal 
+        isOpen={isVideoOpen} 
+        onClose={() => setIsVideoOpen(false)} 
+        // ඔයාගේ ඇත්ත NexiaCore Promo video එක හැදුවම මෙතනට ඒකේ YouTube embed link එක දාන්න
+        // videoSrc="https://www.youtube.com/embed/YOUR_VIDEO_ID?autoplay=1"
+      />
     </section>
   );
 }

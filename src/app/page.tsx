@@ -6,6 +6,7 @@ import HowItWorks from "../components/sections/HowItWorks";
 import Solutions from "../components/sections/Solutions";
 import Analytics from "../components/sections/Analytics";
 import MultiTenant from "../components/sections/MultiTenant";
+import Integrations from "../components/sections/Integrations";
 import Testimonials from "../components/sections/Testimonials";
 import Pricing from "../components/sections/Pricing";
 import CTASection from "../components/sections/CTASection";
@@ -21,6 +22,7 @@ export default function Home() {
       <Solutions />
       <Analytics />
       <MultiTenant />
+      <Integrations />
       <Testimonials />
       <Pricing />
       <CTASection />
