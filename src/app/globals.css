@@ -1,4 +1,7 @@
 @import "tailwindcss";
+* {
+  cursor: none !important; /* සාමාන්‍ය mouse pointer එක අයින් කරනවා */
+}
 
 @theme {
   --color-blue-primary: #2563eb;
@@ -43,4 +46,11 @@
 
 .glass-panel {
   @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-glass;
+}
+
+@layer utilities {
+  /* Hide the default OS cursor everywhere */
+  html, body, *, a, button, [role="button"], input, select, textarea {
+    cursor: none !important;
+  }
 }

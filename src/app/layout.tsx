@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "../components/ui/SmoothScroll"; 
+import { SmoothCursor } from '@/components/ui/SmoothCursor';
 
 // Load Vercel's signature fonts
 const geistSans = Geist({
@@ -60,7 +61,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} relative antialiased bg-white text-slate-900`}>
+        {/* Mount SmoothCursor here to apply global magnification */}
+        <SmoothCursor />
         <SmoothScroll>
         {children}
         </SmoothScroll>
