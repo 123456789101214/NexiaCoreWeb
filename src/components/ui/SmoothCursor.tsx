@@ -24,12 +24,11 @@ export const SmoothCursor = () => {
   const lensY = useSpring(mouseY, lensSpringConfig);
 
   // --- 4. Rotation Physics (Swimming/Steering effect) ---
-  const rotation = useMotionValue(-135); // Start pointing Top-Left (Standard OS Cursor angle)
+  const rotation = useMotionValue(-135); // Initial Angle
   const smoothRotation = useSpring(rotation, { damping: 20, stiffness: 300, mass: 0.1 });
 
-  // Refs for logic
+  // Refs for tracking previous position to calculate velocity
   const prevPos = useRef({ x: -100, y: -100 });
-  const restingTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Touch & Accessibility Check
@@ -41,22 +40,13 @@ export const SmoothCursor = () => {
     const handleMotionChange = (e: MediaQueryListEvent) => setReduceMotion(e.matches);
     mediaQuery.addEventListener('change', handleMotionChange);
 
-    // Track Mouse
+    // Track Mouse Coordinates
     const moveCursor = (e: MouseEvent) => {
       if (!isVisible) setIsVisible(true);
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
-
-      // Resting State Logic: Return to default pointing angle when stopped
-      if (restingTimeout.current) clearTimeout(restingTimeout.current);
-      restingTimeout.current = setTimeout(() => {
-        const currentRot = rotation.get();
-        // Shortest path math to return to -135 degrees (Top-Left)
-        let delta = -135 - (currentRot % 360);
-        if (delta > 180) delta -= 360;
-        if (delta < -180) delta += 360;
-        rotation.set(currentRot + delta);
-      }, 400); // 400ms after stopping
+      // NOTE: Removed the auto-reset restingTimeout here. 
+      // Now it will naturally stay pointed in the exact direction it stopped moving.
     };
 
     const handleMouseLeave = () => setIsVisible(false);
@@ -83,11 +73,12 @@ export const SmoothCursor = () => {
       const dx = currentX - prevPos.current.x;
       const dy = currentY - prevPos.current.y;
 
-      // Only calculate new angle if moving fast enough
+      // Only calculate new angle if moving fast enough.
+      // If stopped, dx and dy are 0, so it safely skips this and holds its last angle!
       if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
         const angle = Math.atan2(dy, dx) * (180 / Math.PI);
         
-        // Prevent 360 flip glitches
+        // Prevent 360 flip glitches (Shortest path math)
         const currentRotation = rotation.get();
         let delta = angle - (currentRotation % 360);
         if (delta > 180) delta -= 360;
@@ -109,7 +100,6 @@ export const SmoothCursor = () => {
       document.removeEventListener('mouseover', handleMouseOver);
       mediaQuery.removeEventListener('change', handleMotionChange);
       cancelAnimationFrame(animationFrameId);
-      if (restingTimeout.current) clearTimeout(restingTimeout.current);
     };
   }, [mouseX, mouseY, cursorX, cursorY, rotation, isVisible]);
 
@@ -154,8 +144,6 @@ export const SmoothCursor = () => {
         }}
         aria-hidden="true"
       >
-        {/* Custom Engineered SVG: The tip of the arrow is explicitly at (0,0) in the viewBox.
-            This guarantees 100% clicking accuracy regardless of how it rotates. */}
         <svg
           width="28"
           height="28"

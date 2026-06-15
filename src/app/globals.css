@@ -1,56 +1,132 @@
 @import "tailwindcss";
-* {
-  cursor: none !important; /* සාමාන්‍ය mouse pointer එක අයින් කරනවා */
-}
 
+/* ━━━ TAILWIND V4 DYNAMIC THEME CONFIG ━━━ */
 @theme {
+  /* Brand Colors */
   --color-blue-primary: #2563eb;
   --color-blue-light: #3b82f6;
   --color-teal-accent: #0d9488;
   --color-gold-accent: #f59e0b;
   --color-success: #10b981;
 
-  --color-bg-base: #ffffff;
-  --color-bg-subtle: #f8fafc;
-  --color-bg-muted: #f1f5f9;
+  /* Dynamic Colors (Mewwa Light/Dark mode ekata auto maaru wenawa) */
+  --color-bg-base: var(--bg);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-bg-muted: var(--bg-muted);
   
-  --color-border-main: #e2e8f0;
-  --color-border-subtle: #f1f5f9;
+  --color-border-main: var(--border-main);
+  --color-border-subtle: var(--border-subtle);
 
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94a3b8;
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
 
   --shadow-glow: 0 10px 40px -10px rgba(37, 99, 235, 0.15);
   --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
 }
 
 @layer base {
+  /* ─── LIGHT MODE (DEFAULT) ─── */
+  :root {
+    /* Main Site Variables */
+    --bg: #ffffff;
+    --bg-subtle: #f8fafc;
+    --bg-muted: #f1f5f9;
+    --border-main: #e2e8f0;
+    --border-subtle: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+
+    /* Navbar & Theme Toggler Variables */
+    --navbar-bg: #ffffff;
+    --navbar-shadow: 0 1px 0 rgba(0,0,0,0.06);
+    --pill-bg: #f8fafc;
+    --pill-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    --active-text: #0f172a;
+    --active-bg: #ffffff;
+    --navtext-hover-color: #2563eb;
+    --btn-solid-bg: #0f172a;
+    --btn-solid-text: #ffffff;
+    --btn-login-text: #0f172a;
+    --logo-bg: #2563eb;
+    --logo-text: #ffffff;
+    --mobile-menu-bg: #ffffff;
+    --mobile-divider: #e2e8f0;
+    --toggler-hex-bg: #f1f5f9;
+    --toggler-hex-hover: #e2e8f0;
+    
+    --transition-duration: 400ms;
+  }
+
+  /* ─── DARK MODE ─── */
+  [data-theme="dark"] {
+    /* Main Site Variables */
+    --bg: #0f172a; /* slate-900 */
+    --bg-subtle: #1e293b; /* slate-800 */
+    --bg-muted: #334155; /* slate-700 */
+    --border-main: #334155;
+    --border-subtle: #1e293b;
+    --text-primary: #f8fafc; /* slate-50 */
+    --text-secondary: #94a3b8; /* slate-400 */
+    --text-muted: #64748b; /* slate-500 */
+
+    /* Navbar & Theme Toggler Variables */
+    --navbar-bg: #0f172a;
+    --navbar-shadow: 0 1px 0 rgba(255,255,255,0.06);
+    --pill-bg: #1e293b;
+    --pill-shadow: 0 1px 4px rgba(0,0,0,0.40);
+    --active-text: #f8fafc;
+    --active-bg: #334155;
+    --navtext-hover-color: #ffffff;
+    --btn-solid-bg: #f8fafc;
+    --btn-solid-text: #0f172a;
+    --btn-login-text: #ffffff;
+    --logo-bg: #3b82f6;
+    --logo-text: #ffffff;
+    --mobile-menu-bg: #0f172a;
+    --mobile-divider: #1e293b;
+    --toggler-hex-bg: #1e293b;
+    --toggler-hex-hover: #334155;
+  }
+
   body {
     @apply bg-bg-base text-text-secondary antialiased selection:bg-blue-primary/10 selection:text-blue-primary;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    transition: background-color var(--transition-duration) ease, color var(--transition-duration) ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply text-text-primary tracking-tight;
+    transition: color var(--transition-duration) ease;
   }
 }
 
 /* ━━━ PREMIUM MESH GRADIENT & EFFECTS ━━━ */
-.bg-mesh-fog {
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.04) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(13, 148, 136, 0.03) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.04) 0px, transparent 50%);
-}
+@layer components {
+  .bg-mesh-fog {
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.04) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(13, 148, 136, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.04) 0px, transparent 50%);
+  }
 
-.glass-panel {
-  @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-glass;
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-glass;
+    transition: background-color var(--transition-duration) ease, border-color var(--transition-duration) ease;
+  }
+  
+  /* Dark mode auto-switch for glass panels */
+  [data-theme="dark"] .glass-panel {
+    @apply bg-slate-900/70 border-slate-700/50;
+  }
 }
 
 @layer utilities {
-  /* Hide the default OS cursor everywhere */
-  html, body, *, a, button, [role="button"], input, select, textarea {
+  /* Hide the default OS cursor everywhere 
+   Meka thiyenne ape SmoothCursor.tsx eka weda karanna 
+  */
+  *, html, body, a, button, [role="button"], input, select, textarea {
     cursor: none !important;
   }
 }

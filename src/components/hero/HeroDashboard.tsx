@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { 
+  motion, 
+  AnimatePresence, 
+  useScroll, 
+  useTransform, 
+  useSpring
+} from "framer-motion";
 import { 
   CreditCard, Package, TrendingUp, AlertCircle, ShoppingCart, 
   LayoutDashboard, Users, Receipt, Barcode, Plus, Globe, Activity 
@@ -29,8 +35,23 @@ const MINI_REGIONS = [
 export default function HeroDashboard() {
   const [activeTab, setActiveTab] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
+  const [isReducedMotion, setIsReducedMotion] = useState(false);
 
-  // ━━━ PARALLAX SCROLL LOGIC ━━━
+  // ━━━ ACCESSIBILITY & DEVICE CHECKS ━━━
+  useEffect(() => {
+    setIsTouch(
+      typeof window !== "undefined" &&
+      ("ontouchstart" in window || navigator.maxTouchPoints > 0)
+    );
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setIsReducedMotion(mediaQuery.matches);
+    const handler = (e: MediaQueryListEvent) => setIsReducedMotion(e.matches);
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
+  }, []);
+
+  // ━━━ SMOOTH PARALLAX SCROLL LOGIC ━━━
   const containerRef = useRef<HTMLDivElement>(null);
   
   const { scrollYProgress } = useScroll({
@@ -38,34 +59,39 @@ export default function HeroDashboard() {
     offset: ["start end", "end start"], // Track from element entering to leaving viewport
   });
 
+  // Injecting the Hover.dev smooth "Lenis" feel natively without npm packages
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 80,
+    damping: 20,
+    mass: 0.5,
+  });
+
   // Calculate different Y-axis translation speeds for the 3D Depth effect
-  const yTabs = useTransform(scrollYProgress, [0, 1], [30, -30]);      // Subtle movement
-  const yBanner = useTransform(scrollYProgress, [0, 1], [60, -60]);    // Slowest (Background-ish)
-  const yMain = useTransform(scrollYProgress, [0, 1], [90, -90]);      // Base Layer
-  const yChip1 = useTransform(scrollYProgress, [0, 1], [140, -140]);   // Fast
-  const yChip2 = useTransform(scrollYProgress, [0, 1], [170, -170]);   // Faster
-  const yPayment = useTransform(scrollYProgress, [0, 1], [220, -220]); // Fastest (Closest to camera)
+  const yTabs = useTransform(smoothProgress, [0, 1], [30, -30]);      
+  const yBanner = useTransform(smoothProgress, [0, 1], [60, -60]);    
+  const yMain = useTransform(smoothProgress, [0, 1], [90, -90]);      
+  const yChip1 = useTransform(smoothProgress, [0, 1], [140, -140]);   
+  const yChip2 = useTransform(smoothProgress, [0, 1], [170, -170]);   
+  const yPayment = useTransform(smoothProgress, [0, 1], [220, -220]); 
 
   useEffect(() => {
-    if (isHovered) return;
+    if (isHovered || isReducedMotion) return;
     const interval = setInterval(() => {
       setActiveTab((prev) => (prev + 1) % TABS.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [isHovered]);
+  }, [isHovered, isReducedMotion]);
 
   return (
     <div 
       ref={containerRef}
       className="relative w-full flex flex-col items-center justify-center h-[450px] sm:h-[550px] md:h-[650px] z-10"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => !isTouch && setIsHovered(true)}
+      onMouseLeave={() => !isTouch && setIsHovered(false)}
     >
       
       {/* ━━━ GLASSMORPHISM TAB MENU ━━━ */}
-      {/* Scroll Parallax Wrapper */}
-      <motion.div style={{ y: yTabs }} className="absolute top-0 md:top-4 z-40 w-full flex justify-center pointer-events-none">
-        {/* Original Animation & Styling */}
+      <motion.div style={{ y: isReducedMotion ? 0 : yTabs }} className="absolute top-0 md:top-4 z-40 w-full flex justify-center pointer-events-none">
         <motion.div 
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -89,14 +115,16 @@ export default function HeroDashboard() {
       </motion.div>
 
       {/* ━━━ SCALING WRAPPER (Mobile Responsiveness) ━━━ */}
-      <div className="relative w-[520px] h-[400px] scale-[0.55] sm:scale-[0.80] md:scale-100 origin-center perspective-[2000px] mt-16 md:mt-20">
+      <div className="relative w-[520px] h-[400px] scale-[0.55] sm:scale-[0.80] lg:scale-100 origin-center perspective-[2000px] mt-16 md:mt-20">
         
         {/* ━━━ MAIN MULTI-VIEW PANEL ━━━ */}
-        {/* Scroll Parallax Wrapper */}
-        <motion.div style={{ y: yMain }} className="absolute inset-0 z-10 pointer-events-none">
+        <motion.div style={{ y: isReducedMotion ? 0 : yMain }} className="absolute inset-0 z-10 pointer-events-none">
           <motion.div 
             initial={{ rotateY: -12, rotateX: 5, z: -50, opacity: 0 }}
-            animate={{ rotateY: -12, rotateX: 5, z: -50, opacity: 1, y: [0, -8, 0] }}
+            animate={isReducedMotion ? 
+              { rotateY: 0, rotateX: 0, z: 0, opacity: 1, y: 0 } : 
+              { rotateY: -12, rotateX: 5, z: -50, opacity: 1, y: [0, -8, 0] }
+            }
             transition={{ y: { duration: 6, repeat: Infinity, ease: "easeInOut" }, opacity: { duration: 1 } }}
             className="absolute inset-0 bg-white rounded-2xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border border-slate-200 overflow-hidden flex flex-col pointer-events-auto"
           >
@@ -299,7 +327,7 @@ export default function HeroDashboard() {
                       <div className="flex-1"></div>
                       <div className="flex items-center gap-2 text-[8px] text-slate-400">
                         <Activity size={12} className="text-blue-500" />
-                        <span>Syncing multi-tenant isolated databases...</span>
+                        <span>Syncing isolated DBs...</span>
                       </div>
                     </div>
 
@@ -331,7 +359,7 @@ export default function HeroDashboard() {
         {/* ━━━ FLOATING ELEMENTS AROUND THE DASHBOARD ━━━ */}
         
         {/* Payment Card Wrapper */}
-        <motion.div style={{ y: yPayment }} className="absolute inset-0 z-20 pointer-events-none">
+        <motion.div style={{ y: isReducedMotion ? 0 : yPayment }} className="absolute inset-0 z-20 pointer-events-none">
           <motion.div 
             initial={{ x: 80, y: 50, z: 80, opacity: 0 }}
             animate={{ x: 5, z: 80, opacity: 1, y: [240, 230, 240] }}
@@ -360,7 +388,7 @@ export default function HeroDashboard() {
         </motion.div>
 
         {/* Floating Metrics Chip 1 Wrapper */}
-        <motion.div style={{ y: yChip1 }} className="absolute inset-0 z-30 pointer-events-none">
+        <motion.div style={{ y: isReducedMotion ? 0 : yChip1 }} className="absolute inset-0 z-30 pointer-events-none">
           <motion.div 
             animate={{ y: [-5, 5, -5] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             className="absolute top-1 -right-4 bg-white px-3 py-2 rounded-xl shadow-lg border border-slate-100 flex items-center gap-2 pointer-events-auto"
@@ -371,7 +399,7 @@ export default function HeroDashboard() {
         </motion.div>
 
         {/* Floating Metrics Chip 2 Wrapper */}
-        <motion.div style={{ y: yChip2 }} className="absolute inset-0 z-30 pointer-events-none">
+        <motion.div style={{ y: isReducedMotion ? 0 : yChip2 }} className="absolute inset-0 z-30 pointer-events-none">
           <motion.div 
             animate={{ y: [5, -5, 5] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
             className="absolute top-53 -left-12 bg-white px-3 py-2 rounded-xl shadow-lg border border-slate-100 flex items-center gap-2 pointer-events-auto"
@@ -382,7 +410,7 @@ export default function HeroDashboard() {
         </motion.div>
 
         {/* Trial Banner Wrapper */}
-        <motion.div style={{ y: yBanner }} className="absolute inset-0 z-30 pointer-events-none">
+        <motion.div style={{ y: isReducedMotion ? 0 : yBanner }} className="absolute inset-0 z-30 pointer-events-none">
           <motion.div 
             initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}
             className="absolute -top-5 left-8 bg-amber-100 border border-amber-200 px-4 py-2 rounded-full shadow-sm flex items-center gap-2 cursor-pointer hover:bg-amber-200 transition-colors pointer-events-auto"

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import SmoothScroll from "../components/ui/SmoothScroll"; 
+import SmoothScroll from "../components/ui/SmoothScroll";
 import { SmoothCursor } from '@/components/ui/SmoothCursor';
 
 // Load Vercel's signature fonts
@@ -20,12 +20,12 @@ export const metadata: Metadata = {
   title: "NexiaCore — Smart POS SaaS for Sri Lanka | Cloud POS System",
   description: "Cloud-based Point of Sale system for supermarkets, pharmacies, and retail shops in Sri Lanka. Real-time analytics, multi-tenant, free 14-day trial. Trusted by 1,500+ businesses.",
   keywords: [
-    "POS system Sri Lanka", 
-    "supermarket software", 
-    "pharmacy POS", 
-    "retail management", 
-    "NexiaCore", 
-    "cloud POS", 
+    "POS system Sri Lanka",
+    "supermarket software",
+    "pharmacy POS",
+    "retail management",
+    "NexiaCore",
+    "cloud POS",
     "inventory management Sri Lanka",
     "digital naya potha"
   ],
@@ -61,11 +61,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+    (function() {
+      try {
+        var saved = localStorage.getItem('nexiacore-theme');
+        var isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (isDark) document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) {}
+    })();
+  `}} />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} relative antialiased bg-white text-slate-900`}>
         {/* Mount SmoothCursor here to apply global magnification */}
         <SmoothCursor />
         <SmoothScroll>
-        {children}
+          {children}
         </SmoothScroll>
       </body>
     </html>
