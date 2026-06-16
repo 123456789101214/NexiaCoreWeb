@@ -11,11 +11,15 @@ import Testimonials from "../components/sections/Testimonials";
 import Pricing from "../components/sections/Pricing";
 import CTASection from "../components/sections/CTASection";
 import Footer from "../components/footer/Footer";
+import { MacbookScroll } from '@/components/ui/MacbookScroll';
 export default function Home() {
   return (
     <main>
       <Navbar />
       <Hero />
+      <section className="relative w-full bg-[#080810]">
+        <MacbookScroll />
+      </section>
       <TrustBar />
       <Features />
       <HowItWorks />
