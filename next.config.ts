@@ -1,12 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Port එක නැතුව IP එක විතරක් මේ විදියට දාන්න
-  allowedDevOrigins: ['192.168.1.7'], 
+  // මේ තියෙන්නේ ඔයාගේ අලුත් Hotspot IP එක මචං (Port එක නැතුව)
+  allowedDevOrigins: ['10.41.9.75'], 
   
   output: "export",
   images: {
-    unoptimized: true, // Static export සඳහා අනිවාර්යයි
+    unoptimized: true,
   },
 };
 
