@@ -197,7 +197,7 @@ export default function Pricing() {
                   </ul>
 
                   <Link 
-                    href={plan.link}
+                    href={plan.link} target="_blank"
                     className={`block text-center relative w-full py-3.5 px-5 rounded-2xl text-[15px] font-bold tracking-wide overflow-hidden transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0
                       ${plan.popular 
                         ? 'bg-white text-blue-600 shadow-[0_10px_24px_rgba(0,0,0,0.18)] hover:shadow-[0_14px_30px_rgba(0,0,0,0.25)]' 

@@ -1,526 +1,434 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useMotionValue, useSpring, useTransform, useScroll } from 'framer-motion';
+import React, { useState, useEffect, useRef } from "react";
+import { 
+  motion, 
+  AnimatePresence, 
+  useScroll, 
+  useTransform, 
+  useSpring,
+  useMotionTemplate
+} from "framer-motion";
+import { 
+  CreditCard, Package, TrendingUp, AlertCircle, ShoppingCart, 
+  LayoutDashboard, Users, Receipt, Barcode, Plus, Globe, Activity 
+} from "lucide-react";
 
-// --- Types ---
-type TabType = 'dashboard' | 'pos' | 'inventory' | 'coverage';
-
-const TABS: { id: TabType; label: string; icon: React.ReactNode }[] = [
-  {
-    id: 'dashboard',
-    label: 'Dashboard',
-    icon: (
-      <svg className="w-[14px] h-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
-      </svg>
-    ),
-  },
-  {
-    id: 'pos',
-    label: 'POS System',
-    icon: (
-      <svg className="w-[14px] h-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-        <circle cx="9" cy="21" r="1" />
-        <circle cx="20" cy="21" r="1" />
-        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-      </svg>
-    ),
-  },
-  {
-    id: 'inventory',
-    label: 'Inventory',
-    icon: (
-      <svg className="w-[14px] h-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'coverage',
-    label: 'Coverage',
-    icon: (
-      <svg className="w-[14px] h-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="2" y1="12" x2="22" y2="12" />
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-      </svg>
-    ),
-  },
+const TABS = [
+  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={14} /> },
+  { id: 'pos', label: 'POS System', icon: <ShoppingCart size={14} /> },
+  { id: 'inventory', label: 'Inventory', icon: <Package size={14} /> },
+  { id: 'coverage', label: 'Coverage', icon: <Globe size={14} /> }
 ];
 
-const PROVINCES = [
-  { name: 'Northern', x: 140, y: 20 },
-  { name: 'N.Central', x: 155, y: 65 },
-  { name: 'N.Western', x: 90, y: 110 },
-  { name: 'Central', x: 155, y: 135 },
-  { name: 'Eastern', x: 215, y: 95 },
-  { name: 'Western', x: 70, y: 165 },
-  { name: 'Sabaragamuwa', x: 125, y: 180 },
-  { name: 'Uva', x: 195, y: 160 },
-  { name: 'Southern', x: 140, y: 215 },
+const MINI_REGIONS = [
+  { name: "Northern", x: 140, y: 20 },
+  { name: "North Central", x: 155, y: 65 },
+  { name: "North Western", x: 90, y: 110 },
+  { name: "Central", x: 155, y: 135 },
+  { name: "Eastern", x: 230, y: 95 },
+  { name: "Western", x: 70, y: 165 },
+  { name: "Sabaragamuwa", x: 125, y: 180 },
+  { name: "Uva", x: 200, y: 160 },
+  { name: "Southern", x: 140, y: 215 },
 ];
 
 export default function HeroDashboard() {
-  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [activeTab, setActiveTab] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [isTouch, setIsTouch] = useState(false);
+  const [isReducedMotion, setIsReducedMotion] = useState(false);
 
-  // Auto-cycle tabs
+  // ━━━ ACCESSIBILITY & DEVICE CHECKS ━━━
   useEffect(() => {
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReduced) return;
-
-    if (isHovered) return;
-    const interval = setInterval(() => {
-      setActiveTab((prev) => {
-        const currentIndex = TABS.findIndex((t) => t.id === prev);
-        return TABS[(currentIndex + 1) % TABS.length].id;
-      });
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isHovered]);
-
-  // Touch device detection
-  useEffect(() => {
-    setIsTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    setIsTouch(
+      typeof window !== "undefined" &&
+      ("ontouchstart" in window || navigator.maxTouchPoints > 0)
+    );
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setIsReducedMotion(mediaQuery.matches);
+    const handler = (e: MediaQueryListEvent) => setIsReducedMotion(e.matches);
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
-  // Framer Motion 3D Tilt Values
-  const mouseX = useMotionValue(0.5);
-  const mouseY = useMotionValue(0.5);
+  // ━━━ SMOOTH PARALLAX SCROLL LOGIC ━━━
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"], // Track from element entering to leaving viewport
+  });
 
-  const rotateX = useTransform(mouseY, [0, 1], [10, -10]);
-  const rotateY = useTransform(mouseX, [0, 1], [-10, 10]);
+  // Injecting the Hover.dev smooth "Lenis" feel natively without npm packages
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 80,
+    damping: 20,
+    mass: 0.5,
+  });
 
-  const springConfig = { stiffness: 150, damping: 20, mass: 0.5 };
-  const smoothRotateX = useSpring(rotateX, springConfig);
-  const smoothRotateY = useSpring(rotateY, springConfig);
+  // Calculate different Y-axis translation speeds for the 3D Depth effect
+  const yTabs = useTransform(smoothProgress, [0, 1], [30, -30]);      
+  const yBanner = useTransform(smoothProgress, [0, 1], [60, -60]);    
+  const yMain = useTransform(smoothProgress, [0, 1], [90, -90]);      
+  const yChip1 = useTransform(smoothProgress, [0, 1], [140, -140]);   
+  const yChip2 = useTransform(smoothProgress, [0, 1], [170, -170]);   
+  const yPayment = useTransform(smoothProgress, [0, 1], [220, -220]); 
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isTouch || !containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    mouseX.set(x);
-    mouseY.set(y);
-  };
+  // ━━━ CLIP-PATH EXPAND EFFECT (Smooth Hero Signature) ━━━
+  const clip1 = useTransform(smoothProgress, [0, 0.4], [35, 0]); // Starts clipped at 35%, expands to 0%
+  const clip2 = useTransform(smoothProgress, [0, 0.4], [65, 100]); // Starts clipped at 65%, expands to 100%
+  const clipPath = useMotionTemplate`polygon(${clip1}% ${clip1}%, ${clip2}% ${clip1}%, ${clip2}% ${clip2}%, ${clip1}% ${clip2}%)`;
 
-  const handleMouseLeave = () => {
-    if (isTouch) return;
-    mouseX.set(0.5);
-    mouseY.set(0.5);
-    setIsHovered(false);
-  };
-
-  // Scroll Parallax for floating elements
-  const { scrollY } = useScroll();
-  const parallaxY1 = useTransform(scrollY, [0, 1000], [0, -60]);
-  const parallaxY2 = useTransform(scrollY, [0, 1000], [0, -30]);
-  const parallaxY3 = useTransform(scrollY, [0, 1000], [0, -90]);
+  useEffect(() => {
+    if (isHovered || isReducedMotion) return;
+    const interval = setInterval(() => {
+      setActiveTab((prev) => (prev + 1) % TABS.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isHovered, isReducedMotion]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.8, ease: 'easeOut' }}
-      className="w-full max-w-[600px] mx-auto py-10 px-4 md:px-0 flex items-center justify-center [perspective:1200px]"
+    <div 
       ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onMouseEnter={() => setIsHovered(true)}
+      className="relative w-full flex flex-col items-center justify-center h-[450px] sm:h-[550px] md:h-[650px] z-10"
+      onMouseEnter={() => !isTouch && setIsHovered(true)}
+      onMouseLeave={() => !isTouch && setIsHovered(false)}
     >
-      <motion.div
-        style={{
-          rotateX: isTouch ? 0 : smoothRotateX,
-          rotateY: isTouch ? 0 : smoothRotateY,
-          transformStyle: 'preserve-3d',
-        }}
-        className="relative w-full transition-transform duration-200 ease-linear will-change-transform"
-      >
-        {/* Glassmorphism Tab Bar */}
-        <div
-          className="flex items-center gap-1.5 p-1.5 bg-white/60 backdrop-blur-xl border border-white/40 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.06)] w-fit mx-auto mb-6 relative z-50"
-          style={{ transform: 'translateZ(40px)' }}
+      
+      {/* ━━━ GLASSMORPHISM TAB MENU ━━━ */}
+      <motion.div style={{ y: isReducedMotion ? 0 : yTabs }} className="absolute top-0 md:top-4 z-40 w-full flex justify-center pointer-events-none">
+        <motion.div 
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="flex items-center gap-1 sm:gap-2 p-1.5 bg-white/60 backdrop-blur-xl border border-black/[0.05] rounded-full shadow-sm pointer-events-auto"
         >
-          {TABS.map((tab) => (
+          {TABS.map((tab, idx) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold transition-all duration-300 ${
-                activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-[0_4px_12px_rgba(37,99,235,0.3)] border border-blue-500'
-                  : 'bg-transparent text-slate-500 hover:bg-white/80 hover:text-slate-900'
+              onClick={() => setActiveTab(idx)}
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-[11px] sm:text-[12px] font-bold transition-all duration-300 ${
+                activeTab === idx 
+                  ? 'bg-blue-600 text-white shadow-md border border-blue-500' 
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-white/80'
               }`}
             >
-              {tab.icon}
-              <span className="whitespace-nowrap">{tab.label}</span>
+              {tab.icon} <span className="hidden sm:inline">{tab.label}</span>
             </button>
           ))}
-        </div>
-
-        {/* Dashboard Scale Wrapper */}
-        <div className="relative w-[520px] h-[420px] mx-auto scale-[0.6] sm:scale-75 md:scale-100 origin-top -mb-[170px] sm:-mb-[100px] md:mb-0">
-          
-          {/* Main Glass Panel */}
-          <div
-            className="absolute inset-0 bg-white/95 backdrop-blur-2xl border border-white/60 rounded-[18px] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.15)] overflow-hidden motion-safe:animate-hero-float"
-            style={{
-              transform: 'rotateY(-12deg) rotateX(5deg) translateZ(-30px)',
-              transformStyle: 'preserve-3d',
-            }}
-          >
-            {/* macOS styled window dots */}
-            <div className="absolute top-3 left-4 flex gap-1.5 z-20">
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-200 border border-slate-300"></div>
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-200 border border-slate-300"></div>
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-200 border border-slate-300"></div>
-            </div>
-
-            {/* Views Setup */}
-            <div className="relative w-full h-full pt-10">
-              <ViewWrapper active={activeTab === 'dashboard'}><DashboardView /></ViewWrapper>
-              <ViewWrapper active={activeTab === 'pos'}><POSView /></ViewWrapper>
-              <ViewWrapper active={activeTab === 'inventory'}><InventoryView /></ViewWrapper>
-              <ViewWrapper active={activeTab === 'coverage'}><CoverageView /></ViewWrapper>
-            </div>
-          </div>
-
-          {/* Floating Element 1: Payment Card (Parallax + Float) */}
-          <motion.div
-            style={{ y: parallaxY1, z: 80, transformStyle: 'preserve-3d' }}
-            className="absolute -left-6 bottom-4 w-[240px] z-30"
-          >
-            <div className="bg-white/85 backdrop-blur-xl border border-white/60 rounded-[18px] p-4 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] motion-safe:animate-float-slow">
-              <div className="flex justify-between items-start mb-3">
-                <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center">
-                  {TABS[1].icon}
-                </div>
-                <div className="flex items-center gap-1 bg-green-50 text-green-600 text-[8px] font-bold px-2 py-1 rounded-full border border-green-100">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                  SECURE
-                </div>
-              </div>
-              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Amount</div>
-              <div className="text-[22px] font-black text-slate-900 tracking-tight mb-3">Rs. 2,850.00</div>
-              <div className="h-9 rounded-lg bg-slate-900 flex items-center justify-between px-3 text-white shadow-[0_8px_20px_-8px_rgba(0,0,0,0.5)]">
-                <div className="flex items-center gap-2">
-                  <svg className="w-3.5 h-3.5 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-                    <line x1="1" y1="10" x2="23" y2="10" />
-                  </svg>
-                  <span className="text-[10px] font-mono opacity-80 tracking-[0.2em]">•••• 4242</span>
-                </div>
-                <svg className="w-3.5 h-3.5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" />
-                </svg>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Floating Element 2: Trend Chip */}
-          <motion.div
-            style={{ y: parallaxY2, z: 100 }}
-            className="absolute top-2 -right-4 z-40"
-          >
-            <div className="bg-white/90 backdrop-blur-md px-3 py-2 rounded-xl shadow-[0_12px_30px_rgba(0,0,0,0.1)] border border-white/50 flex items-center gap-2 text-[10px] font-bold text-slate-700 motion-safe:animate-float-fast">
-              <svg className="w-3.5 h-3.5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                <polyline points="17 6 23 6 23 12" />
-              </svg>
-              <span><span className="text-green-600">↑ 8.5%</span> vs yesterday</span>
-            </div>
-          </motion.div>
-
-          {/* Floating Element 3: Low Stock Alert */}
-          <motion.div
-            style={{ y: parallaxY3, z: 90 }}
-            className="absolute top-[200px] -left-[45px] z-40"
-          >
-            <div className="bg-white/90 backdrop-blur-md px-3 py-2 rounded-xl shadow-[0_12px_30px_rgba(0,0,0,0.1)] border border-white/50 flex items-center gap-2 text-[10px] font-bold text-slate-700 motion-safe:animate-float-medium">
-              <svg className="w-3.5 h-3.5 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              96 Low Stock Items
-            </div>
-          </motion.div>
-
-          {/* Floating Element 4: Trial Banner */}
-          <motion.div
-            style={{ y: parallaxY2, z: 60 }}
-            className="absolute -top-5 left-6 z-40"
-          >
-            <div className="bg-amber-100/90 backdrop-blur-md border border-amber-300 px-4 py-1.5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.05)] text-[10px] font-bold text-amber-900 whitespace-nowrap cursor-pointer hover:bg-amber-200 transition-colors">
-              ⚡ Your trial ends in 14 days. Upgrade Now →
-            </div>
-          </motion.div>
-
-        </div>
+        </motion.div>
       </motion.div>
-    </motion.div>
-  );
-}
 
-// --- View Wrapper (Handles blur fade in/out) ---
-function ViewWrapper({ children, active }: { children: React.ReactNode; active: boolean }) {
-  return (
-    <div
-      className={`absolute inset-0 transition-all duration-500 ease-in-out flex flex-col w-full h-full bg-slate-50/50 ${
-        active ? 'opacity-100 blur-0 pointer-events-auto' : 'opacity-0 blur-sm pointer-events-none'
-      }`}
-    >
-      {children}
-    </div>
-  );
-}
-
-// --- SUB-VIEWS ---
-
-function DashboardView() {
-  return (
-    <div className="p-5 flex flex-col h-full gap-3 bg-slate-50/50">
-      <div className="flex justify-between items-end border-b border-slate-200 pb-2">
-        <div>
-          <h3 className="text-[17px] font-black text-slate-900 tracking-tight">Dashboard Overview</h3>
-          <p className="text-[10px] font-bold text-slate-500 mt-0.5">Colombo Branch Performance</p>
-        </div>
-        <div className="bg-white border border-slate-200 px-3 py-1 rounded-lg text-[9px] font-bold text-slate-600 shadow-sm">
-          Today
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-3 mt-1">
-        <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-          <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 mb-1">
-            <svg className="w-3 h-3 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-              <polyline points="17 6 23 6 23 12" />
-            </svg>
-            Total Sales
-          </div>
-          <div className="text-xl font-black text-slate-900 tracking-tight">Rs. 125,430</div>
-        </div>
-        <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-          <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 mb-1">
-            <svg className="w-3 h-3 text-teal-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="16" y1="13" x2="8" y2="13" />
-              <line x1="16" y1="17" x2="8" y2="17" />
-              <polyline points="10 9 9 9 8 9" />
-            </svg>
-            Orders
-          </div>
-          <div className="text-xl font-black text-slate-900 tracking-tight">320</div>
-        </div>
-      </div>
-      <div className="flex-1 bg-white rounded-xl border border-slate-100 p-3 shadow-[0_2px_8px_rgba(0,0,0,0.02)] flex flex-col">
-        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Hourly Revenue Trend</div>
-        <div className="flex-1 flex items-end gap-1.5">
-          {[20, 45, 30, 80, 50, 100, 60, 40].map((height, i) => (
-            <div key={i} className="flex-1 bg-blue-50 rounded-t-sm h-full flex items-end overflow-hidden group">
-              <div 
-                className={`w-full rounded-t-sm transition-colors duration-300 ${height === 100 ? 'bg-blue-600' : 'bg-blue-300 group-hover:bg-blue-400'}`}
-                style={{ height: `${height}%` }}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function POSView() {
-  const items = [
-    { name: 'Munchee Cracker', price: '250' },
-    { name: 'Siddhalepa 50g', price: '150' },
-    { name: 'Anchor 400g', price: '1,150' },
-    { name: 'Sunsilk Black', price: '480' },
-  ];
-
-  return (
-    <div className="flex h-full w-full bg-slate-50/50">
-      <div className="flex-[3] p-3 flex flex-col gap-2.5 border-r border-slate-100">
-        <div className="flex gap-1.5">
-          {['All', 'Grocery', 'Pharmacy'].map((cat, i) => (
-            <div key={i} className={`px-2.5 py-1 rounded-md text-[9px] font-bold cursor-pointer border transition-colors ${i === 0 ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300'}`}>
-              {cat}
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-2 gap-2 mt-1">
-          {items.map((item, i) => (
-            <div key={i} className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm cursor-pointer hover:border-blue-300 transition-colors">
-              <div className="w-full h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-300 mb-1.5">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /></svg>
-              </div>
-              <div className="text-[10px] font-bold text-slate-900 leading-tight truncate">{item.name}</div>
-              <div className="text-[9px] font-black text-blue-600 mt-0.5">Rs. {item.price}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="flex-[2] bg-white flex flex-col">
-        <div className="p-2.5 border-b border-slate-100 bg-slate-50/50 text-[10px] font-bold text-slate-500">
-          Current Order (3)
-        </div>
-        <div className="flex-1 p-2.5 flex flex-col gap-2">
-          <div className="flex justify-between items-center pb-2 border-b border-dashed border-slate-100">
-            <div>
-              <div className="text-[10px] font-bold text-slate-900 truncate max-w-[80px]">Munchee Cracker</div>
-              <div className="text-[8px] text-slate-400">2 x Unit</div>
-            </div>
-            <div className="text-[10px] font-black text-slate-900">Rs. 500</div>
-          </div>
-          <div className="flex justify-between items-center pb-2 border-b border-dashed border-slate-100">
-            <div>
-              <div className="text-[10px] font-bold text-slate-900 truncate max-w-[80px]">Anchor 400g</div>
-              <div className="text-[8px] text-slate-400">1 x Unit</div>
-            </div>
-            <div className="text-[10px] font-black text-slate-900">Rs. 1,150</div>
-          </div>
-        </div>
-        <div className="p-2.5 bg-slate-50/50 border-t border-slate-100">
-          <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 mb-2">
-            <span>Total</span>
-            <span className="text-[15px] font-black text-slate-900">Rs. 1,650</span>
-          </div>
-          <button className="w-full py-2 bg-blue-600 text-white rounded-lg text-[11px] font-bold flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(37,99,235,0.3)] hover:bg-blue-700 transition-colors">
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
-            Pay Now
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function InventoryView() {
-  const invData = [
-    { name: 'Maggi Coconut Milk', code: '847192', price: '450', stock: 128, color: 'green', width: '85%' },
-    { name: 'Anchor Butter 200g', code: '479102', price: '950', stock: 34, color: 'amber', width: '23%' },
-    { name: 'Prima Noodles', code: '931245', price: '180', stock: 0, color: 'red', width: '0%' },
-  ];
-
-  return (
-    <div className="h-full w-full bg-white flex flex-col">
-      <div className="px-4 py-3 flex justify-between items-center border-b border-slate-100 bg-slate-50/50">
-        <div>
-          <div className="text-[17px] font-black text-slate-900 tracking-tight">Inventory Data</div>
-          <div className="text-[9px] text-slate-500 mt-0.5 font-medium">Stock & GRN Tracking</div>
-        </div>
-        <div className="flex items-center gap-1 bg-blue-600 text-white px-2.5 py-1.5 rounded-lg text-[9px] font-bold shadow-[0_2px_8px_rgba(37,99,235,0.3)] cursor-pointer hover:bg-blue-700 transition-colors">
-          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-          Add Item
-        </div>
-      </div>
-      <div className="flex px-4 py-2 border-b border-slate-100 text-[8px] font-bold text-slate-400 uppercase tracking-widest bg-white">
-        <div className="flex-[2]">Product</div>
-        <div className="flex-1">Selling</div>
-        <div className="flex-1">Stock</div>
-      </div>
-      <div className="flex flex-col">
-        {invData.map((row, i) => (
-          <div key={i} className="flex items-center px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-            <div className="flex-[2] flex items-center gap-2">
-              <div className="w-7 h-7 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-300 shrink-0">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /></svg>
-              </div>
-              <div>
-                <div className="text-[10px] font-bold text-slate-700 truncate max-w-[100px]">{row.name}</div>
-                <div className="text-[8px] text-slate-400 font-mono tracking-wide">▐ {row.code}</div>
-              </div>
-            </div>
-            <div className="flex-1 text-[10px] font-black text-slate-900">Rs.{row.price}</div>
-            <div className="flex-1">
-              <div className={`text-[9px] font-black mb-1 ${row.color === 'green' ? 'text-green-600' : row.color === 'amber' ? 'text-amber-600' : 'text-red-600'}`}>
-                {row.stock} Units
-              </div>
-              <div className="w-10 h-1 bg-slate-100 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full rounded-full ${row.color === 'green' ? 'bg-green-500' : row.color === 'amber' ? 'bg-amber-500' : 'bg-red-500'}`} 
-                  style={{ width: row.width }} 
-                />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function CoverageView() {
-  return (
-    <div className="h-full w-full bg-slate-900 flex flex-col relative overflow-hidden">
-      <div className="px-4 py-3 flex justify-between items-center border-b border-white/10 relative z-10">
-        <div>
-          <div className="text-[17px] font-black text-white tracking-tight">Island-Wide Network</div>
-          <div className="text-[9px] text-slate-400 mt-0.5">Real-time sync across all 9 provinces</div>
-        </div>
-        <div className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-md text-[9px] font-bold border border-emerald-500/20">
-          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-          Live Nodes
-        </div>
-      </div>
-      <div className="flex-1 flex relative">
-        <div className="w-[110px] border-r border-white/10 p-3 flex flex-col gap-4 relative z-10">
-          <div>
-            <div className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Active Tenants</div>
-            <div className="text-xl font-black text-white">1,500+</div>
-          </div>
-          <div>
-            <div className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Data Latency</div>
-            <div className="text-sm font-black text-emerald-400">&lt;50ms</div>
-          </div>
-          <div className="flex-1" />
-          <div className="flex items-center gap-1.5 text-[8px] text-slate-400 font-medium">
-            <svg className="w-3 h-3 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
-            Syncing DBs...
-          </div>
-        </div>
+      {/* ━━━ SCALING WRAPPER (Mobile Responsiveness Fix) ━━━ */}
+      {/* Changed to w-full with a responsive height, and the inner 520px container is absolute centered */}
+      <div className="relative w-full h-[260px] sm:h-[320px] lg:h-[400px] mt-16 md:mt-20">
         
-        {/* Map Area */}
-        <div className="flex-1 relative overflow-hidden bg-slate-900">
-          {/* Grid Background */}
-          <div 
-            className="absolute inset-0 opacity-20 pointer-events-none"
-            style={{ backgroundImage: 'repeating-linear-gradient(rgba(59,130,246,0.3) 0 1px, transparent 1px 100%), repeating-linear-gradient(90deg, rgba(59,130,246,0.3) 0 1px, transparent 1px 100%)', backgroundSize: '20px 20px' }} 
-          />
-          {/* Subtle radial glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_60%_40%,rgba(37,99,235,0.15)_0%,transparent_70%)] pointer-events-none" />
-
-          {/* SVG Connection Lines */}
-          <svg className="absolute inset-0 w-full h-full opacity-40 pointer-events-none" viewBox="0 0 350 250">
-            <path d="M140 20 L155 135 L140 215" stroke="#3b82f6" strokeWidth="1" strokeDasharray="2 2" fill="none">
-              <animate attributeName="stroke-dashoffset" from="20" to="0" dur="3s" repeatCount="indefinite" />
-            </path>
-            <path d="M70 165 L155 135 L215 95" stroke="#10b981" strokeWidth="1" strokeDasharray="2 2" fill="none">
-              <animate attributeName="stroke-dashoffset" from="20" to="0" dur="2.5s" repeatCount="indefinite" />
-            </path>
-          </svg>
-
-          {/* Nodes */}
-          {PROVINCES.map((r, i) => (
-            <div key={i} className="absolute flex flex-col items-center pointer-events-none" style={{ left: r.x, top: r.y }}>
-              <div className="relative w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]">
-                <span 
-                  className="absolute top-1/2 left-1/2 w-full h-full rounded-full bg-blue-400/50 -translate-x-1/2 -translate-y-1/2 motion-safe:animate-ring"
-                  style={{ animationDelay: `${i * 0.15}s` }} 
-                />
+        {/* Absolute centering trick bypasses Flexbox clipping entirely */}
+        <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[520px] h-[400px] scale-[0.62] sm:scale-[0.80] lg:scale-100 origin-top perspective-[2000px]">
+          
+          {/* ━━━ MAIN MULTI-VIEW PANEL ━━━ */}
+          <motion.div style={{ y: isReducedMotion ? 0 : yMain }} className="absolute inset-0 z-10 pointer-events-none">
+            <motion.div 
+              initial={{ rotateY: -12, rotateX: 5, z: -50, opacity: 0 }}
+              animate={isReducedMotion ? 
+                { rotateY: 0, rotateX: 0, z: 0, opacity: 1, y: 0 } : 
+                { rotateY: -12, rotateX: 5, z: -50, opacity: 1, y: [0, -8, 0] }
+              }
+              transition={{ y: { duration: 6, repeat: Infinity, ease: "easeInOut" }, opacity: { duration: 1 } }}
+              className="absolute inset-0 bg-white rounded-2xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border border-slate-200 overflow-hidden flex flex-col pointer-events-auto"
+            >
+              {/* WINDOW CONTROLS */}
+              <div className="absolute top-3 left-4 flex gap-1.5 z-20">
+                <div className="w-2.5 h-2.5 rounded-full bg-slate-200"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-slate-200"></div>
               </div>
-              <div className="text-[7px] font-bold text-slate-400 mt-1 uppercase tracking-widest whitespace-nowrap">
-                {r.name}
+
+              <AnimatePresence mode="wait">
+                {/* VIEW 1: DASHBOARD */}
+                {activeTab === 0 && (
+                  <motion.div 
+                    key="dashboard"
+                    initial={{ opacity: 0, scale: 0.98, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, scale: 0.98, filter: "blur(4px)" }}
+                    transition={{ duration: 0.4 }}
+                    className="w-full h-full pt-10 px-5 pb-5 bg-slate-50/50 flex flex-col gap-3"
+                  >
+                    <div className="flex justify-between items-end border-b border-slate-200 pb-3">
+                      <div>
+                        <h2 className="text-lg font-black text-slate-800 tracking-tight">Dashboard Overview</h2>
+                        <p className="text-slate-500 text-[10px] font-medium">Colombo Branch Performance</p>
+                      </div>
+                      <div className="bg-white border border-slate-200 px-3 py-1 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm">
+                        Today
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 mt-2">
+                      <div className="p-3 rounded-xl border border-slate-100 bg-white shadow-sm flex flex-col justify-center">
+                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><TrendingUp size={12} className="text-blue-500"/> Total Sales</div>
+                        <div className="text-xl font-black text-slate-800 tracking-tight">Rs. 125,430</div>
+                      </div>
+                      <div className="p-3 rounded-xl border border-slate-100 bg-white shadow-sm flex flex-col justify-center">
+                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><Receipt size={12} className="text-emerald-500"/> Orders</div>
+                        <div className="text-xl font-black text-slate-800 tracking-tight">320</div>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 bg-white rounded-xl border border-slate-100 shadow-sm p-3 flex flex-col mt-1">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Hourly Revenue Trend</div>
+                      <div className="flex-1 flex items-end justify-between gap-1.5">
+                        {[20, 45, 30, 80, 50, 100, 60, 40].map((h, i) => (
+                          <div key={i} className="w-full bg-blue-50 rounded-t-sm relative group overflow-hidden" style={{ height: '100%' }}>
+                            <div className={`absolute bottom-0 w-full rounded-t-sm transition-all duration-500 ${i === 5 ? 'bg-blue-600' : 'bg-blue-300 group-hover:bg-blue-400'}`} style={{ height: `${h}%` }}></div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* VIEW 2: POS SYSTEM */}
+                {activeTab === 1 && (
+                  <motion.div 
+                    key="pos"
+                    initial={{ opacity: 0, scale: 0.98, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, scale: 0.98, filter: "blur(4px)" }}
+                    transition={{ duration: 0.4 }}
+                    className="w-full h-full pt-10 flex bg-slate-50/50"
+                  >
+                    <div className="flex-[3] p-4 flex flex-col gap-3 border-r border-slate-100">
+                      <div className="flex gap-2">
+                        {['All', 'Grocery', 'Pharmacy'].map((cat, i) => (
+                          <div key={i} className={`px-2 py-1 rounded-md text-[9px] font-bold cursor-pointer ${i === 0 ? 'bg-slate-800 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-500'}`}>{cat}</div>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 overflow-hidden">
+                        {[
+                          { n: "Munchee Cracker", p: "250" }, { n: "Siddhalepa 50g", p: "150" },
+                          { n: "Anchor 400g", p: "1,150" }, { n: "Sunsilk Black", p: "480" }
+                        ].map((p, i) => (
+                          <div key={i} className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm flex flex-col gap-1.5 hover:border-blue-300 cursor-pointer">
+                            <div className="w-full h-12 bg-slate-50 rounded-lg flex items-center justify-center text-slate-300"><Package size={16}/></div>
+                            <div>
+                              <div className="text-[10px] font-bold text-slate-800 leading-tight truncate">{p.n}</div>
+                              <div className="text-[9px] font-black text-blue-600 mt-0.5">Rs. {p.p}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="flex-[2] bg-white flex flex-col">
+                      <div className="p-3 border-b border-slate-100 bg-slate-50/50 text-[10px] font-bold text-slate-500">Current Order (3)</div>
+                      <div className="flex-1 p-3 flex flex-col gap-2.5 overflow-hidden">
+                        {[
+                          { n: "Munchee Cracker", q: 2, p: "500" },
+                          { n: "Anchor 400g", q: 1, p: "1,150" }
+                        ].map((item, i) => (
+                          <div key={i} className="flex justify-between items-center pb-2 border-b border-slate-50 border-dashed">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-bold text-slate-800 truncate max-w-[80px]">{item.n}</span>
+                              <span className="text-[8px] text-slate-400">{item.q} x Unit</span>
+                            </div>
+                            <span className="text-[10px] font-black text-slate-800">Rs. {item.p}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="p-3 bg-slate-50/50 border-t border-slate-100 flex flex-col gap-2">
+                        <div className="flex justify-between text-[10px] font-bold text-slate-500"><span>Total</span> <span className="text-[14px] font-black text-slate-800">Rs. 1,650</span></div>
+                        <button className="w-full py-2.5 bg-blue-600 text-white rounded-lg text-[11px] font-bold shadow-md flex items-center justify-center gap-1.5">
+                          <CreditCard size={12}/> Pay Now
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* VIEW 3: INVENTORY */}
+                {activeTab === 2 && (
+                  <motion.div 
+                    key="inventory"
+                    initial={{ opacity: 0, scale: 0.98, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, scale: 0.98, filter: "blur(4px)" }}
+                    transition={{ duration: 0.4 }}
+                    className="w-full h-full flex flex-col bg-white"
+                  >
+                    <div className="px-5 pt-10 pb-3 flex justify-between items-center border-b border-slate-100 bg-slate-50/50">
+                      <div>
+                        <h2 className="text-lg font-black text-slate-800 tracking-tight">Inventory Data</h2>
+                        <p className="text-slate-500 text-[9px] font-medium mt-0.5">Stock & GRN Tracking</p>
+                      </div>
+                      <div className="flex items-center gap-1 bg-blue-600 text-white px-2 py-1 rounded-md font-bold text-[9px] shadow-sm">
+                        <Plus size={10} /> Add Item
+                      </div>
+                    </div>
+
+                    <div className="flex-1 overflow-hidden flex flex-col">
+                      <div className="flex items-center px-5 py-2 border-b border-slate-100 text-[8px] font-bold text-slate-400 uppercase tracking-widest bg-white">
+                        <div className="flex-[2]">Product</div>
+                        <div className="flex-1">Selling</div>
+                        <div className="flex-1">Stock</div>
+                      </div>
+
+                      <div className="divide-y divide-slate-50">
+                        {[
+                          { name: "Maggi Coconut Milk", barcode: "847192", price: "450", stock: 128, color: "text-emerald-500", bg: "bg-emerald-500" },
+                          { name: "Anchor Butter 200g", barcode: "479102", price: "950", stock: 34, color: "text-amber-500", bg: "bg-amber-500" },
+                          { name: "Prima Noodles", barcode: "931245", price: "180", stock: 0, color: "text-red-500", bg: "bg-red-500" },
+                        ].map((product, i) => (
+                          <div key={i} className="flex items-center px-5 py-2.5 hover:bg-slate-50 transition-colors">
+                            <div className="flex-[2] flex items-center gap-2.5">
+                              <div className="w-7 h-7 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-300">
+                                <Package size={12} />
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-slate-700 truncate max-w-[100px]">{product.name}</span>
+                                <span className="text-[8px] text-slate-400 font-mono"><Barcode size={8} className="inline" /> {product.barcode}</span>
+                              </div>
+                            </div>
+                            <div className="flex-1 font-black text-[10px] text-slate-800">Rs.{product.price}</div>
+                            <div className="flex-1 flex flex-col gap-1">
+                              <span className={`text-[8px] font-black ${product.color}`}>{product.stock} Units</span>
+                              <div className="w-10 h-1 bg-slate-100 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${product.bg}`} style={{ width: `${Math.min((product.stock / 150) * 100, 100)}%` }} />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* VIEW 4: ISLAND-WIDE COVERAGE */}
+                {activeTab === 3 && (
+                  <motion.div 
+                    key="coverage"
+                    initial={{ opacity: 0, scale: 0.98, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, scale: 0.98, filter: "blur(4px)" }}
+                    transition={{ duration: 0.4 }}
+                    className="w-full h-full flex flex-col bg-slate-900 overflow-hidden relative"
+                  >
+                    <div className="px-5 pt-10 pb-3 flex justify-between items-center border-b border-slate-800 bg-slate-900 z-10">
+                      <div>
+                        <h2 className="text-lg font-black text-white tracking-tight">Island-Wide Network</h2>
+                        <p className="text-slate-400 text-[9px] font-medium mt-0.5">Real-time sync across all 9 provinces</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-md font-bold text-[9px] border border-emerald-500/30">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div> Live Nodes
+                      </div>
+                    </div>
+
+                    <div className="flex-1 relative flex">
+                      <div className="w-1/3 border-r border-slate-800 bg-slate-900/80 backdrop-blur-md z-10 flex flex-col p-4 gap-4">
+                        <div>
+                          <div className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-1">Active Tenants</div>
+                          <div className="text-xl font-black text-white">1,500+</div>
+                        </div>
+                        <div>
+                          <div className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-1">Data Latency</div>
+                          <div className="text-base font-bold text-emerald-400">{'< 50ms'}</div>
+                        </div>
+                        <div className="flex-1"></div>
+                        <div className="flex items-center gap-2 text-[8px] text-slate-400">
+                          <Activity size={12} className="text-blue-500" />
+                          <span>Syncing isolated DBs...</span>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 relative bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-opacity-10">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/20 to-transparent"></div>
+                        
+                        {MINI_REGIONS.map((region, i) => (
+                          <div key={region.name} className="absolute flex flex-col items-center" style={{ top: region.y, left: region.x }}>
+                            <div className="relative flex h-2 w-2">
+                              <motion.span animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }} transition={{ duration: 2, repeat: Infinity, delay: i * 0.1 }} className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></motion.span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"></span>
+                            </div>
+                            <span className="text-[7px] font-bold text-slate-300 mt-1 uppercase tracking-widest">{region.name}</span>
+                          </div>
+                        ))}
+
+                        <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 350 250">
+                          <motion.path d="M 140 20 L 155 135 L 140 215" stroke="#3b82f6" strokeWidth="1" strokeDasharray="2 2" fill="none" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 3, repeat: Infinity }} />
+                          <motion.path d="M 70 165 L 155 135 L 230 95" stroke="#10b981" strokeWidth="1" strokeDasharray="2 2" fill="none" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }} />
+                        </svg>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </motion.div>
+
+          {/* ━━━ FLOATING ELEMENTS AROUND THE DASHBOARD ━━━ */}
+          
+          {/* Payment Card Wrapper */}
+          <motion.div style={{ y: isReducedMotion ? 0 : yPayment }} className="absolute inset-0 z-20 pointer-events-none">
+            <motion.div 
+              initial={{ x: 80, y: 50, z: 80, opacity: 0 }}
+              animate={{ x: 5, z: 80, opacity: 1, y: [240, 230, 240] }}
+              transition={{ y: { duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 1 }, opacity: { duration: 0.8, delay: 0.6 } }}
+              className="absolute w-[240px] bg-white rounded-[20px] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] border border-slate-100 p-5 z-20 pointer-events-auto"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 shadow-sm">
+                  <ShoppingCart size={14} className="text-slate-600" />
+                </div>
+                <div className="text-[8px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div> Secure
+                </div>
               </div>
-            </div>
-          ))}
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Amount</div>
+              <div className="text-2xl font-black text-slate-800 tracking-tight mb-4">Rs. 2,850.00</div>
+              
+              <div className="h-10 rounded-xl bg-slate-900 flex items-center justify-between px-3 text-white shadow-[0_10px_20px_-10px_rgba(0,0,0,0.5)]">
+                <div className="flex items-center gap-2">
+                  <CreditCard size={14} className="opacity-80"/>
+                  <span className="text-[10px] font-mono tracking-widest opacity-80">•••• 4242</span>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/></svg>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Floating Metrics Chip 1 Wrapper */}
+          <motion.div style={{ y: isReducedMotion ? 0 : yChip1 }} className="absolute inset-0 z-30 pointer-events-none">
+            <motion.div 
+              animate={{ y: [-5, 5, -5] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-1 -right-4 bg-white px-3 py-2 rounded-xl shadow-lg border border-slate-100 flex items-center gap-2 pointer-events-auto"
+            >
+              <TrendingUp size={14} className="text-emerald-500" />
+              <span className="text-[10px] font-bold text-slate-700"><span className="text-emerald-600">↑ 8.5%</span> vs yesterday</span>
+            </motion.div>
+          </motion.div>
+
+          {/* Floating Metrics Chip 2 Wrapper */}
+          <motion.div style={{ y: isReducedMotion ? 0 : yChip2 }} className="absolute inset-0 z-30 pointer-events-none">
+            <motion.div 
+              animate={{ y: [5, -5, 5] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              className="absolute top-52 -left-12 bg-white px-3 py-2 rounded-xl shadow-lg border border-slate-100 flex items-center gap-2 pointer-events-auto"
+            >
+              <AlertCircle size={14} className="text-red-500" />
+              <span className="text-[10px] font-bold text-slate-700">96 Low Stock Items</span>
+            </motion.div>
+          </motion.div>
+
+          {/* Trial Banner Wrapper */}
+          <motion.div style={{ y: isReducedMotion ? 0 : yBanner }} className="absolute inset-0 z-30 pointer-events-none">
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}
+              className="absolute -top-5 left-8 bg-amber-100 border border-amber-200 px-4 py-2 rounded-full shadow-sm flex items-center gap-2 cursor-pointer hover:bg-amber-200 transition-colors pointer-events-auto"
+            >
+              <span className="text-[10px] font-bold text-amber-800">⚡ Your trial ends in 14 days. Upgrade Now →</span>
+            </motion.div>
+          </motion.div>
+          
         </div>
       </div>
     </div>
