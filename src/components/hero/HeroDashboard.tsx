@@ -36,19 +36,6 @@ const MINI_REGIONS = [
   { name: "Southern", x: 140, y: 215 },
 ];
 
-// ━━━ BARBA.JS STYLE CINEMATIC TRANSITIONS ━━━
-// Extracted out here to keep the JSX clean and fix TypeScript errors
-const screenVariants = {
-  initial: { opacity: 0, x: 30, scale: 0.98, filter: "blur(5px)" },
-  animate: { opacity: 1, x: 0, scale: 1, filter: "blur(0px)" },
-  exit: { opacity: 0, x: -30, scale: 0.98, filter: "blur(5px)" }
-};
-
-const screenTransition = { 
-  duration: 0.8, 
-  ease: [0.22, 1, 0.36, 1] as const // 'as const' completely fixes the VS Code TypeScript error
-};
-
 export default function HeroDashboard() {
   const [activeTab, setActiveTab] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -178,11 +165,10 @@ export default function HeroDashboard() {
                 {activeTab === 0 && (
                   <motion.div 
                     key="dashboard"
-                    variants={screenVariants}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    transition={screenTransition}
+                    initial={{ opacity: 0, x: 40, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, x: -40, filter: "blur(4px)" }}
+                    transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }} 
                     className="absolute inset-0 pt-10 pb-0 px-0"
                   >
                     <div className="relative w-full h-full bg-[#1C1C1E]">
@@ -201,11 +187,10 @@ export default function HeroDashboard() {
                 {activeTab === 1 && (
                   <motion.div 
                     key="pos"
-                    variants={screenVariants}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    transition={screenTransition}
+                    initial={{ opacity: 0, x: 40, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, x: -40, filter: "blur(4px)" }}
+                    transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
                     className="absolute inset-0 pt-10 pb-0 px-0"
                   >
                     <div className="relative w-full h-full bg-[#1C1C1E]">
@@ -224,11 +209,10 @@ export default function HeroDashboard() {
                 {activeTab === 2 && (
                   <motion.div 
                     key="inventory"
-                    variants={screenVariants}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    transition={screenTransition}
+                    initial={{ opacity: 0, x: 40, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, x: -40, filter: "blur(4px)" }}
+                    transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
                     className="absolute inset-0 pt-10 pb-0 px-0"
                   >
                     <div className="relative w-full h-full bg-[#1C1C1E]">
@@ -243,20 +227,19 @@ export default function HeroDashboard() {
                   </motion.div>
                 )}
 
-                {/* VIEW 4: REPORTS */}
+                {/* VIEW 3: REPORTS */}
                 {activeTab === 3 && (
                   <motion.div 
                     key="reports"
-                    variants={screenVariants}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    transition={screenTransition}
+                    initial={{ opacity: 0, x: 40, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, x: -40, filter: "blur(4px)" }}
+                    transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
                     className="absolute inset-0 pt-10 pb-0 px-0"
                   >
                     <div className="relative w-full h-full bg-[#1C1C1E]">
                       <Image 
-                        src="/images/hero-dashboard-4.png" 
+                        src="/images/hero-dashboard-3.png" 
                         alt="NexiaCore Reports"
                         fill
                         className="object-contain object-center"
@@ -266,15 +249,14 @@ export default function HeroDashboard() {
                   </motion.div>
                 )}
 
-                {/* VIEW 5: ISLAND-WIDE COVERAGE (RESTORED INTERACTIVE MAP VIEW) */}
+                {/* VIEW 4: ISLAND-WIDE COVERAGE (RESTORED INTERACTIVE MAP VIEW) */}
                 {activeTab === 4 && (
                   <motion.div 
                     key="coverage"
-                    variants={screenVariants}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    transition={screenTransition}
+                    initial={{ opacity: 0, x: 40, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, x: -40, filter: "blur(4px)" }}
+                    transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
                     className="absolute inset-0 pt-10 flex flex-col bg-slate-900 overflow-hidden"
                   >
                     {/* Restored Map Inner Header */}
