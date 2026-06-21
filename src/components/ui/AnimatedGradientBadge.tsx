@@ -12,7 +12,7 @@ export function AnimatedGradientBadge({
   className?: string;
 }) {
   return (
-    <div className={cn("group relative inline-flex items-center justify-center rounded-full px-4 py-1.5 shadow-[inset_0_-8px_10px_#2563eb1f] transition-shadow duration-500 ease-out hover:shadow-[inset_0_-5px_10px_#2563eb3f] bg-white/40 backdrop-blur-md", className)}>
+    <div className={cn("group relative inline-flex items-center justify-center rounded-full px-4 py-1.5 shadow-[inset_0_-8px_10px_#2563eb1f] transition-shadow duration-500 ease-out hover:shadow-[inset_0_-5px_10px_#2563eb3f] bg-[var(--animatedbadge-bg)] backdrop-blur-md", className)}>
       {/* Animated Border Mask */}
       <span
         className="absolute inset-0 block h-full w-full rounded-full bg-gradient-to-r from-blue-500/80 via-teal-400/80 to-blue-500/80 bg-[length:300%_100%] p-[1px] animate-gradient-bg"

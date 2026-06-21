@@ -47,7 +47,7 @@ export default function Hero() {
             </motion.div>
 
             {/* TEXT 3D FLIP ANIMATION */}
-            <h2 className="text-5xl sm:text-6xl lg:text-[72px] font-black text-slate-900 leading-[1.05] tracking-tighter mb-4">
+            <h2 className="text-5xl sm:text-6xl lg:text-[72px] font-black  leading-[1.05] tracking-tighter mb-4 text-[var(--hero-text)]">
               <Text3DFlip text="Power Your Business." delayOffset={0} />
               <br className="hidden sm:block" />
               <Text3DFlip text="Anywhere. Anytime." gradient={true} delayOffset={0.4} className="mt-2" />

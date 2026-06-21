@@ -37,6 +37,8 @@
     --text-primary: #0f172a;
     --text-secondary: #475569;
     --text-muted: #94a3b8;
+    --hero-text:var(--active-text);
+    --animatedbadge-bg: #f8fafc;
 
     /* Navbar & Theme Toggler Variables */
     --navbar-bg: #ffffff;
@@ -56,6 +58,7 @@
     --toggler-hex-bg: #f1f5f9;
     --toggler-hex-hover: #e2e8f0;
     
+    
     --transition-duration: 400ms;
   }
 
@@ -70,6 +73,8 @@
     --text-primary: #f8fafc; /* slate-50 */
     --text-secondary: #94a3b8; /* slate-400 */
     --text-muted: #64748b; /* slate-500 */
+    --hero-text: #ffffff;
+    --animatedbadge-bg: #ffffff;
 
     /* Navbar & Theme Toggler Variables */
     --navbar-bg: #0f172a;
@@ -88,6 +93,7 @@
     --mobile-divider: #1e293b;
     --toggler-hex-bg: #1e293b;
     --toggler-hex-hover: #334155;
+    
   }
 
   body {

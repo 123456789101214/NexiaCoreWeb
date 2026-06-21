@@ -68,15 +68,18 @@ export function MacbookScroll() {
 function DesktopMacbook({ prefersReduced }: { prefersReduced: boolean | null }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [shimmer, setShimmer] = useState(false);
+  const [isPoweredOn, setIsPoweredOn] = useState(true);
+
+  const togglePower = () => setIsPoweredOn(prev => !prev);
 
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ['start start', 'end end'] });
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 400, damping: 40, mass: 0.8 });
   const staticProgress = useMotionValue(1);
   const progressToUse = prefersReduced ? staticProgress : smoothProgress;
 
-  const lidAngle = useTransform(progressToUse, [0, 1], [-92, 0]);
+  const lidAngle = useTransform(progressToUse, [0, 1], [-108, 0]);
   const scale = useTransform(progressToUse, [0, 1], [0.65, 1]);
-  const translateY = useTransform(progressToUse, [0, 1], [150, 0]);
+  const translateY = useTransform(progressToUse, [0, 1], ['12vh', '0px']);
   const rotateX = useTransform(progressToUse, [0, 1], [15, 0]);
   const headerOpacity = useTransform(progressToUse, [0, 0.3], [1, 0]);
   const glowOpacity = useTransform(progressToUse, [0.4, 1], [0, 0.12]);
@@ -96,22 +99,67 @@ function DesktopMacbook({ prefersReduced }: { prefersReduced: boolean | null }) 
 
         <HeaderTitle opacity={headerOpacity} />
 
-        <div className="w-full flex justify-center items-center mt-24" style={{ perspective: '1400px', perspectiveOrigin: '50% 40%' }}>
-          <motion.div className="relative w-[85vw] max-w-[950px]" style={{ transformStyle: 'preserve-3d', scale, y: translateY, rotateX }}>
+        <div className="w-full flex justify-center items-center mt-[min(10vh,6rem)]" style={{ perspective: '1400px', perspectiveOrigin: '50% 40%' }}>
+          <motion.div className="relative w-[min(85vw,112vh,950px)]" style={{ transformStyle: 'preserve-3d', scale, y: translateY, rotateX }}>
             
-            {/* LID */}
+            {/* --- 2-SIDED MACBOOK LID --- */}
             <motion.div className="relative w-full aspect-[16/10] origin-bottom" style={{ transformStyle: 'preserve-3d', rotateX: lidAngle }}>
-              <div className="absolute inset-0 rounded-t-[18px] bg-gradient-to-br from-[#c8c9cc] to-[#a0a2a5] shadow-[inset_0_1px_0_rgba(255,255,255,.6),_0_-6px_20px_rgba(0,0,0,.5)]" />
-              <div className="absolute top-2 left-2 right-2 bottom-0 bg-[#0a0a0e] rounded-t-[10px] overflow-hidden shadow-[inset_0_0_0_1px_rgba(255,255,255,.06)]">
-                <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#1a1a1f] border border-[#333] z-10 flex items-center justify-center"><div className="w-[2px] h-[2px] rounded-full bg-blue-500/60" /></div>
-                
-                {/* Screen Content */}
-                <div className="absolute top-[16px] left-0 right-0 bottom-0 bg-[#0f172a] overflow-hidden">
-                  <UIContainer device="desktop" />
-                  <motion.div className="absolute inset-0 z-50 pointer-events-none" initial={{ x: '-100%', opacity: 0 }} animate={shimmer ? { x: '100%', opacity: 1 } : { x: '-100%', opacity: 0 }} transition={{ duration: 1, ease: 'easeInOut' }} style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%)' }} />
+              
+              {/* SIDE A: FRONT FACE */}
+              <div 
+                className="absolute inset-0 w-full h-full"
+                style={{
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                  transform: 'rotateY(0deg)',
+                  transformStyle: 'preserve-3d'
+                }}
+              >
+                <div className="absolute inset-0 rounded-t-[18px] bg-gradient-to-br from-[#c8c9cc] to-[#a0a2a5] shadow-[inset_0_1px_0_rgba(255,255,255,.6),_0_-6px_20px_rgba(0,0,0,.5)]" />
+                <div className="absolute top-2 left-2 right-2 bottom-0 bg-[#0a0a0e] rounded-t-[10px] overflow-hidden shadow-[inset_0_0_0_1px_rgba(255,255,255,.06)]">
+                  <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#1a1a1f] border border-[#333] z-10 flex items-center justify-center">
+                    <motion.div 
+                      className="w-[2px] h-[2px] rounded-full bg-blue-500/60" 
+                      animate={{ opacity: isPoweredOn ? 1 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    />
+                  </div>
+                  
+                  {/* Screen Content */}
+                  <div className="absolute top-[16px] left-0 right-0 bottom-0 bg-[#0f172a] overflow-hidden">
+                    <UIContainer device="desktop" isPoweredOn={isPoweredOn} />
+                    <motion.div className="absolute inset-0 z-50 pointer-events-none" initial={{ x: '-100%', opacity: 0 }} animate={shimmer ? { x: '100%', opacity: 1 } : { x: '-100%', opacity: 0 }} transition={{ duration: 1, ease: 'easeInOut' }} style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%)' }} />
+                    
+                    {/* Realistic GPU-accelerated Power OFF/ON screen overlay */}
+                    <motion.div 
+                      className="absolute inset-0 bg-[#08080f] z-40 pointer-events-none"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: isPoweredOn ? 0 : 1 }}
+                      transition={{ duration: 0.35, ease: "easeInOut" }}
+                    />
+                  </div>
                 </div>
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#888] via-[#aaa] to-[#888]" />
               </div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#888] via-[#aaa] to-[#888]" />
+
+              {/* SIDE B: BACK FACE */}
+              <div 
+                className="absolute inset-0 w-full h-full rounded-t-[18px] bg-gradient-to-br from-[#d8d9dc] via-[#b5b6b9] to-[#929497] flex items-center justify-center border-t-[1.5px] border-x-[1.5px] border-white/50 shadow-[0_20px_40px_rgba(0,0,0,0.9)] overflow-hidden"
+                style={{
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                  transform: 'rotateY(180deg) translateZ(1px)',
+                }}
+              >
+                <div className="relative flex items-center justify-center">
+                  {/* Crisp SVG Apple Logo */}
+                  <svg className="w-10 h-10 md:w-12 md:h-12 text-white fill-current opacity-90" viewBox="0 0 384 512">
+                    <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
+                  </svg>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#555] via-[#333] to-[#555]" />
+              </div>
+
             </motion.div>
 
             {/* BASE */}
@@ -123,9 +171,9 @@ function DesktopMacbook({ prefersReduced }: { prefersReduced: boolean | null }) 
                   <div className="w-[22%] h-1 bg-black/20 rounded-full" />
                 </div>
                 
-                {/* FIXED MACBOOK KEYBOARD - Pure Flex Aspect Ratio (NO PX/CQW) */}
+                {/* --- UPGRADED INTERACTIVE MACBOOK KEYBOARD --- */}
                 <div className="w-full aspect-[2.65] bg-gradient-to-b from-[#1e1e1e] to-[#181818] rounded-md p-1.5 flex flex-col gap-[1.5%] shadow-[inset_0_2px_8px_rgba(0,0,0,.8),0_1px_0_rgba(255,255,255,.08)]">
-                   <MacKeyboardRenderer />
+                   <MacKeyboardRenderer togglePower={togglePower} />
                 </div>
 
                 <div className="flex justify-center mt-2.5">
@@ -152,7 +200,6 @@ function ContainerScroll({ type, prefersReduced }: { type: 'tablet' | 'mobile', 
   const staticProgress = useMotionValue(1);
   const progressToUse = prefersReduced ? staticProgress : smoothProgress;
 
-  // Tablet/Phone floats up, scales, and rotates to flat
   const rotateX = useTransform(progressToUse, [0, 1], [22, 0]);
   const scale = useTransform(progressToUse, [0, 1], [0.85, 1]);
   const translateY = useTransform(progressToUse, [0, 1], [200, 0]);
@@ -187,7 +234,6 @@ function ContainerScroll({ type, prefersReduced }: { type: 'tablet' | 'mobile', 
             ) : (
               // iPHONE FRAME
               <div className="w-[85vw] max-w-[380px] aspect-[9/19.5] bg-black rounded-[3rem] p-2 border-[6px] border-slate-800 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative">
-                {/* Dynamic Island */}
                 <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[35%] h-6 bg-black rounded-full z-50 flex items-center justify-end px-2">
                    <div className="w-2 h-2 rounded-full bg-blue-900/30" />
                 </div>
@@ -223,19 +269,18 @@ function HeaderTitle({ opacity }: { opacity: any }) {
 
 
 // ==========================================
-// 4. THE SAAS UI CORE (Adaptive Images)
+// 4. THE SAAS UI CORE
 // ==========================================
-function UIContainer({ device }: { device: DeviceType }) {
+function UIContainer({ device, isPoweredOn = true }: { device: DeviceType; isPoweredOn?: boolean }) {
   const images = device === 'desktop' ? DESKTOP_IMAGES : device === 'tablet' ? TABLET_IMAGES : MOBILE_IMAGES;
   const [activeId, setActiveId] = useState(images[0].id);
   const [isHovered, setIsHovered] = useState(false);
   const prefersReduced = useReducedMotion();
 
   useEffect(() => {
-    // Only auto-cycle if there are multiple images (like desktop)
-    if (prefersReduced || isHovered || images.length <= 1) return;
+    // Automatically pause image slider if the user shut down the macbook!
+    if (prefersReduced || isHovered || images.length <= 1 || !isPoweredOn) return;
     
-    // Smooth fast interval
     const interval = setInterval(() => {
       setActiveId((prev) => {
         const currentIndex = images.findIndex((img) => img.id === prev);
@@ -244,7 +289,7 @@ function UIContainer({ device }: { device: DeviceType }) {
     }, 3000); 
     
     return () => clearInterval(interval);
-  }, [isHovered, prefersReduced, images]);
+  }, [isHovered, prefersReduced, images, isPoweredOn]);
 
   return (
     <div 
@@ -252,7 +297,6 @@ function UIContainer({ device }: { device: DeviceType }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* MacOS Browser Bar (Desktop Only) */}
       {device === 'desktop' && (
         <div className="h-8 md:h-10 bg-[#0f172a] border-b border-white/5 flex items-center justify-between px-4 z-20 shrink-0">
           <div className="flex gap-1.5">
@@ -264,7 +308,6 @@ function UIContainer({ device }: { device: DeviceType }) {
         </div>
       )}
 
-      {/* Crossfading Image Area */}
       <div className="flex-1 relative overflow-hidden bg-[#0f172a]">
         {images.map((img) => (
           <div 
@@ -273,14 +316,8 @@ function UIContainer({ device }: { device: DeviceType }) {
               activeId === img.id ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
             }`}
           >
-            {/* Using object-cover to guarantee images never squish or distort */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
-              src={img.src} 
-              alt={img.id} 
-              className="w-full h-full object-cover object-top"
-              draggable="false"
-            />
+            <img src={img.src} alt={img.id} className="w-full h-full object-cover object-top" draggable="false" />
           </div>
         ))}
       </div>
@@ -290,51 +327,175 @@ function UIContainer({ device }: { device: DeviceType }) {
 
 
 // ==========================================
-// 5. PURE FLEX MACBOOK KEYBOARD ENGINE (FIXED)
+// 5. UPGRADED INTERACTIVE KEYBOARD ENGINE
 // ==========================================
-// This replaces explicit pixel/cqw heights with pure flex percentages. 
-// Guaranteed to never break aspect ratio on any monitor.
-function MacKeyboardRenderer() {
+
+// Intercepts physical keyboard JS event and converts to our custom key ID
+function normalizeKeyId(e: KeyboardEvent): string | null {
+  const code = e.code;
+  const key = e.key.toLowerCase();
+
+  if (code === 'Space') return 'space';
+  if (key === 'escape') return 'esc';
+  if (key === 'backspace' || key === 'delete') return 'delete';
+  if (key === 'enter') return 'return';
+  if (key === 'tab') return 'tab';
+  if (key === 'capslock') return 'caps';
+
+  if (key === 'shift') return e.location === 2 ? 'shift-r' : 'shift-l';
+  if (key === 'control') return 'ctrl';
+  if (key === 'alt') return e.location === 2 ? 'opt-r' : 'opt-l';
+  if (key === 'meta') return e.location === 2 ? 'cmd-r' : 'cmd-l';
+
+  if (code === 'ArrowUp') return 'up';
+  if (code === 'ArrowDown') return 'down';
+  if (code === 'ArrowLeft') return 'left';
+  if (code === 'ArrowRight') return 'right';
+
+  if (code.startsWith('F') && !isNaN(parseInt(code.slice(1)))) {
+    return code.toLowerCase();
+  }
+
+  if (key.length === 1) return key;
+
+  return null;
+}
+
+// Reusable physical tactile Key sub-component
+function K({
+  id,
+  label,
+  flex = "flex-1",
+  className = "",
+  activeMap,
+  onManual,
+  onClick,
+  children
+}: {
+  id: string;
+  label?: string;
+  flex?: string;
+  className?: string;
+  activeMap: Record<string, boolean>;
+  onManual: (id: string, state: boolean) => void;
+  onClick?: () => void;
+  children?: React.ReactNode;
+}) {
+  const isPressed = activeMap[id] || false;
+
+  return (
+    <div
+      onMouseDown={() => { onManual(id, true); onClick?.(); }}
+      onMouseUp={() => onManual(id, false)}
+      onMouseLeave={() => onManual(id, false)}
+      onTouchStart={() => { onManual(id, true); onClick?.(); }}
+      onTouchEnd={() => onManual(id, false)}
+      className={`
+        ${flex} ${className}
+        rounded-[3px] flex items-center justify-center relative overflow-hidden
+        cursor-pointer select-none transition-all duration-75 ease-out
+        ${isPressed
+          ? 'translate-y-[1.5px] bg-gradient-to-b from-[#303030] to-[#181818] shadow-[0_0.5px_0_#0d0d0d,_inset_0_0.5px_0_rgba(255,255,255,.05)]'
+          : 'bg-gradient-to-b from-[#454545] to-[#2a2a2a] shadow-[0_2px_0_#0d0d0d,_inset_0_1px_0_rgba(255,255,255,.13)]'
+        }
+      `}
+    >
+      {children || (
+        <span className={`font-sans transition-colors duration-75 ${isPressed ? 'text-white/90 scale-[0.98]' : 'text-white/50'} text-[6px] lg:text-[8px] font-medium`}>
+          {label || id}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function MacKeyboardRenderer({ togglePower }: { togglePower?: () => void }) {
+  const [activeKeys, setActiveKeys] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const mapped = normalizeKeyId(e);
+      if (mapped) setActiveKeys(prev => ({ ...prev, [mapped]: true }));
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      const mapped = normalizeKeyId(e);
+      if (mapped) setActiveKeys(prev => ({ ...prev, [mapped]: false }));
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
+  const setManual = (id: string, state: boolean) => {
+    setActiveKeys(prev => ({ ...prev, [id]: state }));
+  };
+
   const rowStyle = "flex-1 flex gap-[0.5%]";
-  const keyBase = "bg-gradient-to-b from-[#454545] to-[#2a2a2a] shadow-[0_2px_0_#0d0d0d,_inset_0_1px_0_rgba(255,255,255,.13)] rounded-[3px] flex items-center justify-center relative overflow-hidden";
-  const labelStyle = "text-white/50 text-[6px] lg:text-[8px] font-medium font-sans";
 
   return (
     <>
       <div className={rowStyle}>
-        <div className={`${keyBase} flex-1`}><span className={labelStyle}>esc</span></div>
-        {['F1','F2','F3','F4','F5','F6','F7','F8','F9','F10','F11','F12'].map((k) => <div key={k} className={`${keyBase} flex-[0.8]`}><span className={labelStyle}>{k}</span></div>)}
-        <div className={`${keyBase} flex-1`}><div className="w-3 h-3 border border-white/20 rounded-full shadow-inner"/></div>
+        <K id="esc" label="esc" activeMap={activeKeys} onManual={setManual} />
+        {['f1','f2','f3','f4','f5','f6','f7','f8','f9','f10','f11','f12'].map((k) => (
+          <K key={k} id={k} label={k.toUpperCase()} flex="flex-[0.8]" activeMap={activeKeys} onManual={setManual} />
+        ))}
+        {/* Hooked up onClick trigger directly to the Power Key */}
+        <K id="power" flex="flex-1" activeMap={activeKeys} onManual={setManual} onClick={togglePower}>
+          <div className="w-3 h-3 border border-white/20 rounded-full shadow-inner"/>
+        </K>
       </div>
+
       <div className={rowStyle}>
-        {['`','1','2','3','4','5','6','7','8','9','0','-','='].map(k => <div key={k} className={`${keyBase} flex-1`}><span className={labelStyle}>{k}</span></div>)}
-        <div className={`${keyBase} flex-[1.8]`}><span className={labelStyle}>delete</span></div>
+        <K id="`" label="`" activeMap={activeKeys} onManual={setManual} />
+        {['1','2','3','4','5','6','7','8','9','0','-','='].map(k => (
+          <K key={k} id={k} label={k} activeMap={activeKeys} onManual={setManual} />
+        ))}
+        <K id="delete" label="delete" flex="flex-[1.8]" activeMap={activeKeys} onManual={setManual} />
       </div>
+
       <div className={rowStyle}>
-        <div className={`${keyBase} flex-[1.5]`}><span className={labelStyle}>tab</span></div>
-        {['Q','W','E','R','T','Y','U','I','O','P','[',']','\\'].map(k => <div key={k} className={`${keyBase} flex-1`}><span className={labelStyle}>{k}</span></div>)}
+        <K id="tab" label="tab" flex="flex-[1.5]" activeMap={activeKeys} onManual={setManual} />
+        {['q','w','e','r','t','y','u','i','o','p','[',']','\\'].map(k => (
+          <K key={k} id={k} label={k.toUpperCase()} activeMap={activeKeys} onManual={setManual} />
+        ))}
       </div>
+
       <div className={rowStyle}>
-        <div className={`${keyBase} flex-[1.8]`}><span className={labelStyle}>caps</span></div>
-        {['A','S','D','F','G','H','J','K','L',';',"'"].map(k => <div key={k} className={`${keyBase} flex-1`}><span className={labelStyle}>{k}</span></div>)}
-        <div className={`${keyBase} flex-[2.2]`}><span className={labelStyle}>return</span></div>
+        <K id="caps" label="caps" flex="flex-[1.8]" activeMap={activeKeys} onManual={setManual} />
+        {['a','s','d','f','g','h','j','k','l',';','\''].map(k => (
+          <K key={k} id={k} label={k.toUpperCase()} activeMap={activeKeys} onManual={setManual} />
+        ))}
+        <K id="return" label="return" flex="flex-[2.2]" activeMap={activeKeys} onManual={setManual} />
       </div>
+
       <div className={rowStyle}>
-        <div className={`${keyBase} flex-[2.3]`}><span className={labelStyle}>shift</span></div>
-        {['Z','X','C','V','B','N','M',',','.','/'].map(k => <div key={k} className={`${keyBase} flex-1`}><span className={labelStyle}>{k}</span></div>)}
-        <div className={`${keyBase} flex-[2.3]`}><span className={labelStyle}>shift</span></div>
+        <K id="shift-l" label="shift" flex="flex-[2.3]" activeMap={activeKeys} onManual={setManual} />
+        {['z','x','c','v','b','n','m',',','.','/'].map(k => (
+          <K key={k} id={k} label={k.toUpperCase()} activeMap={activeKeys} onManual={setManual} />
+        ))}
+        <K id="shift-r" label="shift" flex="flex-[2.3]" activeMap={activeKeys} onManual={setManual} />
       </div>
+
       <div className={rowStyle}>
-        <div className={`${keyBase} flex-1`}><span className={labelStyle}>fn</span></div>
-        <div className={`${keyBase} flex-1`}><span className={labelStyle}>ctrl</span></div>
-        <div className={`${keyBase} flex-1`}><span className={labelStyle}>opt</span></div>
-        <div className={`${keyBase} flex-[1.5]`}><span className={labelStyle}>cmd</span></div>
-        <div className={`${keyBase} flex-[5]`} /> {/* Spacebar */}
-        <div className={`${keyBase} flex-[1.5]`}><span className={labelStyle}>cmd</span></div>
-        <div className={`${keyBase} flex-1`}><span className={labelStyle}>opt</span></div>
+        <K id="fn" label="fn" activeMap={activeKeys} onManual={setManual} />
+        <K id="ctrl" label="ctrl" activeMap={activeKeys} onManual={setManual} />
+        <K id="opt-l" label="opt" activeMap={activeKeys} onManual={setManual} />
+        <K id="cmd-l" label="cmd" flex="flex-[1.5]" activeMap={activeKeys} onManual={setManual} />
+        <K id="space" label="" flex="flex-[5]" activeMap={activeKeys} onManual={setManual} />
+        <K id="cmd-r" label="cmd" flex="flex-[1.5]" activeMap={activeKeys} onManual={setManual} />
+        <K id="opt-r" label="opt" activeMap={activeKeys} onManual={setManual} />
         <div className="flex-[1.5] flex flex-col gap-[2%]">
-           <div className={`${keyBase} flex-1`} />
-           <div className="flex-1 flex gap-[2%]"><div className={`${keyBase} flex-1`}/><div className={`${keyBase} flex-1`}/><div className={`${keyBase} flex-1`}/></div>
+           <K id="up" label="▲" flex="flex-1" className="text-[5px]" activeMap={activeKeys} onManual={setManual} />
+           <div className="flex-1 flex gap-[2%]">
+             <K id="left" label="◀" flex="flex-1" className="text-[5px]" activeMap={activeKeys} onManual={setManual} />
+             <K id="down" label="▼" flex="flex-1" className="text-[5px]" activeMap={activeKeys} onManual={setManual} />
+             <K id="right" label="▶" flex="flex-1" className="text-[5px]" activeMap={activeKeys} onManual={setManual} />
+           </div>
         </div>
       </div>
     </>
