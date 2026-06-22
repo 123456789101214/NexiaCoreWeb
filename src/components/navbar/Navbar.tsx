@@ -14,10 +14,49 @@ const NAV_LINKS = [
   { name: 'Contact', href: '#contact' },
 ];
 
+// Pure inline SVGs locked to 2.2px stroke for premium high-DPI crispness
+const getNavIcon = (name: string) => {
+  switch (name) {
+    case 'About':
+      return (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+        </svg>
+      );
+    case 'Features':
+      return (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+        </svg>
+      );
+    case 'Solutions':
+      return (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+      );
+    case 'Pricing':
+      return (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/>
+        </svg>
+      );
+    case 'Contact':
+      return (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+        </svg>
+      );
+    default:
+      return null;
+  }
+};
+
 export default function Navbar() {
   const [activeSection, setActiveSection] = useState('about');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hoveredNav, setHoveredNav] = useState<string | null>(null); // CHANGED
 
   useEffect(() => {
     const handleScroll = () => {
@@ -51,18 +90,14 @@ export default function Navbar() {
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
-    
-    // 1. Mobile menu eka close karanawa
     setIsMobileMenuOpen(false); 
     
-    // 2. URL eka update karanawa (Premium UX - user ta link eka share karanna puluwan wenna)
     if (href !== '/') {
       window.history.pushState(null, '', href);
     } else {
       window.history.pushState(null, '', window.location.pathname);
     }
 
-    // 3. Event Loop eke next tick ekata scroll eka push karanawa (Fix for mobile scroll drop)
     setTimeout(() => {
       if (href === '/' || href === '#about') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -82,7 +117,7 @@ export default function Navbar() {
           behavior: 'smooth'
         });
       }
-    }, 50); // 50ms delay eken menu animation ekayi scroll ekayi gatenne na
+    }, 50); 
   };
 
   return (
@@ -107,17 +142,25 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Center Pill Nav */}
+        {/* CHANGED: Center Pill Nav — replaced native title with aria-label and added spring-animated inverted tooltips */}
         <div className="hidden md:flex items-center bg-[var(--pill-bg)] shadow-[var(--pill-shadow)] rounded-full p-1 gap-0.5 transition-colors duration-[var(--transition-duration)] relative z-10">
           {NAV_LINKS.filter(link => link.name !== 'Home').map((link) => {
             const isActive = activeSection === link.href.substring(1);
+            const isHovered = hoveredNav === link.name; // CHANGED
             
             return (
               <a
                 key={link.name}
                 href={link.href}
                 onClick={(e) => handleNavClick(e, link.href)}
-                className={`relative px-4 py-[7px] rounded-full text-sm whitespace-nowrap transition-colors duration-200 z-10
+                aria-label={link.name} // CHANGED: Replaced 'title' to suppress clashing OS default tooltips
+                onMouseEnter={() => {  // CHANGED: Touch-safe pointer detection
+                  const isTouch = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+                  if (!isTouch) setHoveredNav(link.name);
+                }}
+                onMouseLeave={() => setHoveredNav(null)} // CHANGED
+                className={`relative flex items-center justify-center rounded-full text-sm whitespace-nowrap transition-colors duration-200 z-10
+                  w-[34px] h-[34px] lg:w-auto lg:h-auto lg:px-4 lg:py-[7px]
                   ${isActive 
                     ? 'text-text-primary font-semibold' 
                     : 'text-text-muted font-medium hover:text-[var(--navtext-hover-color)]'
@@ -131,7 +174,34 @@ export default function Navbar() {
                     style={{ zIndex: -1 }}
                   />
                 )}
-                <span className="relative z-10">{link.name}</span>
+
+                {/* Tablet Viewport Icon (768px - 1023px) */}
+                <span className="inline-flex lg:hidden items-center justify-center relative z-10">
+                  {getNavIcon(link.name)}
+                </span>
+
+                {/* CHANGED: Premium Framer Motion Tooltip (Strictly active on tablet breakpoints) */}
+                <AnimatePresence>
+                  {isHovered && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4, scale: 0.92 }}
+                      animate={{ opacity: 1, y: 10, scale: 1 }}
+                      exit={{ opacity: 0, y: 4, scale: 0.92 }}
+                      transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                      className="absolute top-full left-1/2 -translate-x-1/2 pointer-events-none hidden md:flex lg:hidden z-50"
+                    >
+                      <div className="relative px-2.5 py-1 bg-text-primary text-bg-base text-[11px] font-semibold tracking-wide rounded-[6px] shadow-xl border border-border-main whitespace-nowrap">
+                        <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-text-primary rotate-45 rounded-xs" />
+                        {link.name}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Desktop Viewport Text (>= 1024px) */}
+                <span className="hidden lg:inline relative z-10">
+                  {link.name}
+                </span>
               </a>
             );
           })}
