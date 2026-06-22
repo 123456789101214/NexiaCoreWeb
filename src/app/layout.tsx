@@ -1,3 +1,4 @@
+import Script from "next/script";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -60,20 +61,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{
-          __html: `
-    (function() {
-      try {
-        var saved = localStorage.getItem('nexiacore-theme');
-        var isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        if (isDark) document.documentElement.setAttribute('data-theme', 'dark');
-      } catch (e) {}
-    })();
-  `}} />
+        <Script id="nexiacore-theme-init" strategy="beforeInteractive">
+          {`
+            (function() {
+              try {
+                var saved = localStorage.getItem('nexiacore-theme');
+                var isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (isDark) document.documentElement.setAttribute('data-theme', 'dark');
+                else document.documentElement.removeAttribute('data-theme');
+              } catch (e) {}
+            })();
+          `}
+        </Script>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} relative antialiased bg-white text-slate-900`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} relative antialiased bg-bg-base text-text-secondary transition-colors duration-400`}>
         {/* Mount SmoothCursor here to apply global magnification */}
         <SmoothCursor />
         <SmoothScroll>

@@ -123,8 +123,8 @@ export default function Navbar() {
   return (
     <nav className={`fixed top-0 inset-x-0 z-[1000] transition-colors duration-[var(--transition-duration)] ${
       scrolled || isMobileMenuOpen 
-        ? 'bg-[var(--navbar-bg)] shadow-[var(--navbar-shadow)]' 
-        : 'bg-transparent'
+        ? 'bg-[var(--navbar-bg)] shadow-[var(--navbar-shadow)] backdrop-blur-xl border-b border-transparent dark:border-white/[0.05]' 
+        : 'bg-transparent border-b border-transparent'
     }`}>
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         
@@ -143,7 +143,7 @@ export default function Navbar() {
         </Link>
 
         {/* CHANGED: Center Pill Nav — replaced native title with aria-label and added spring-animated inverted tooltips */}
-        <div className="hidden md:flex items-center bg-[var(--pill-bg)] shadow-[var(--pill-shadow)] rounded-full p-1 gap-0.5 transition-colors duration-[var(--transition-duration)] relative z-10">
+        <div className="hidden md:flex items-center bg-[var(--pill-bg)] shadow-[var(--pill-shadow)] border border-transparent dark:border-white/[0.06] backdrop-blur-md rounded-full p-1 gap-0.5 transition-colors duration-[var(--transition-duration)] relative z-10">
           {NAV_LINKS.filter(link => link.name !== 'Home').map((link) => {
             const isActive = activeSection === link.href.substring(1);
             const isHovered = hoveredNav === link.name; // CHANGED
@@ -169,7 +169,7 @@ export default function Navbar() {
                 {isActive && (
                   <motion.div
                     layoutId="nav-indicator"
-                    className="absolute inset-0 bg-[var(--active-bg)] rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] border border-border-subtle"
+                    className="absolute inset-0 bg-[var(--active-bg)] rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:shadow-[0_0_16px_rgba(37,99,235,0.45)] border border-border-subtle dark:border-white/15"
                     transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                     style={{ zIndex: -1 }}
                   />
